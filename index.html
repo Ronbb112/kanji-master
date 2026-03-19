@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>漢字マスター — Kanji Master</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Noto+Sans+Hebrew:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f14; --bg2: #1a1a24; --bg3: #24243a; --bg4: #2e2e48;
+  --amber: #f0a830; --amber-light: #ffd580; --amber-dark: #c48820;
+  --green: #4caf50; --red: #ef5350; --orange: #ff9800; --blue: #42a5f5; --purple: #ab47bc;
+  --text: #e8e6e3; --text2: #a0a0b0; --text3: #6a6a7a;
+  --radius: 12px; --shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+[data-theme="light"] {
+  --bg: #f5f5f0; --bg2: #ffffff; --bg3: #e0e0e0; --bg4: #cccccc;
+  --text: #1a1a2e; --text2: #555566; --text3: #888899;
+}
+html { font-size: 16px; }
+body {
+  font-family: 'Noto Sans Hebrew', 'Noto Sans JP', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+}
+input, select, textarea, button { font-family: inherit; }
+button { cursor: pointer; border: none; background: none; color: inherit; }
+.jp { font-family: 'Noto Sans JP', sans-serif; direction: ltr; }
+.ltr { direction: ltr; text-align: left; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes scaleIn { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+@keyframes flipIn { from { transform:rotateY(90deg); } to { transform:rotateY(0); } }
+@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
+@keyframes xpFloat { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-60px); } }
+@keyframes streak { 0% { transform:scale(1); } 25% { transform:scale(1.3); } 50% { transform:scale(1); } }
+.fade-in { animation: fadeIn 0.4s ease-out; }
+.scale-in { animation: scaleIn 0.3s ease-out; }
+.flip-in { animation: flipIn 0.5s ease-out; }
+.pulse { animation: pulse 0.6s ease-in-out; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+
+#root { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 70px; }
+.nav-bar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; background: var(--bg2);
+  border-top: 1px solid var(--bg3); display: flex; z-index: 100;
+  padding: 4px 0; padding-bottom: env(safe-area-inset-bottom, 4px);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 8px 4px; font-size: 10px; color: var(--text3); transition: color 0.2s; gap: 2px;
+}
+.nav-btn.active { color: var(--amber); }
+.nav-btn .nav-icon { font-size: 22px; }
+.card {
+  background: var(--bg2); border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--bg3); margin-bottom: 12px;
+}
+.card-glow { box-shadow: 0 0 20px rgba(240,168,48,0.1); border-color: var(--amber-dark); }
+.page { padding: 16px; animation: fadeIn 0.3s ease-out; }
+.page-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+.btn {
+  padding: 12px 24px; border-radius: var(--radius); font-weight: 600;
+  font-size: 15px; transition: all 0.2s; display: inline-flex;
+  align-items: center; gap: 8px; justify-content: center;
+}
+.btn-primary { background: var(--amber); color: #000; }
+.btn-primary:hover { background: var(--amber-light); }
+.btn-secondary { background: var(--bg3); color: var(--text); }
+.btn-secondary:hover { background: var(--bg4); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+
+.study-card {
+  background: var(--bg2); border-radius: 16px; min-height: 380px;
+  border: 1px solid var(--bg3); overflow: hidden; position: relative;
+}
+.study-card-inner {
+  padding: 28px 20px; display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+}
+.kanji-large { font-size: 80px; font-weight: 900; line-height: 1.2; }
+.kanji-medium { font-size: 48px; font-weight: 700; }
+.reading-text { font-size: 22px; color: var(--amber); }
+.meaning-text { font-size: 17px; }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.rating-btns { display: flex; gap: 8px; padding: 12px 16px; }
+.rating-btn {
+  flex: 1; padding: 10px 4px; border-radius: 10px; font-size: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 1px solid var(--bg3); transition: all 0.2s;
+}
+.rating-btn:hover { transform: translateY(-2px); }
+.rating-btn .interval { font-size: 10px; opacity: 0.7; }
+
+.explorer-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.explorer-cell {
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border-radius: 10px;
+  background: var(--bg2); border: 1px solid var(--bg3); cursor: pointer;
+  transition: all 0.2s; font-size: 28px;
+}
+.explorer-cell:hover { border-color: var(--amber); transform: scale(1.05); }
+.explorer-cell .cell-sub { font-size: 9px; color: var(--text3); }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab {
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: var(--bg3); color: var(--text2); transition: all 0.2s;
+}
+.tab.active { background: var(--amber); color: #000; }
+
+.search-box {
+  width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--bg3);
+  background: var(--bg2); color: var(--text); font-size: 14px; margin-bottom: 12px;
+}
+.search-box::placeholder { color: var(--text3); }
+
+.progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+.stat-label { color: var(--text2); font-size: 14px; }
+.stat-value { font-weight: 700; font-size: 16px; }
+
+.toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+.toggle-switch {
+  width: 44px; height: 24px; border-radius: 12px; background: var(--bg3);
+  position: relative; cursor: pointer; transition: background 0.3s;
+}
+.toggle-switch.on { background: var(--amber); }
+.toggle-switch::after {
+  content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%;
+  background: white; top: 2px; left: 2px; transition: transform 0.3s;
+}
+.toggle-switch.on::after { transform: translateX(20px); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px;
+  border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+  border: 2px solid var(--bg3); transition: all 0.2s;
+}
+.chip.selected { border-color: var(--amber); background: rgba(240,168,48,0.15); }
+
+.mc-option {
+  padding: 14px; border-radius: 10px; border: 2px solid var(--bg3);
+  margin-bottom: 8px; cursor: pointer; transition: all 0.2s; font-size: 15px;
+}
+.mc-option:hover { border-color: var(--amber); }
+.mc-option.correct { border-color: var(--green); background: rgba(76,175,80,0.15); }
+.mc-option.wrong { border-color: var(--red); background: rgba(239,83,80,0.15); }
+
+.typing-input {
+  width: 100%; padding: 14px; border-radius: 10px; border: 2px solid var(--bg3);
+  background: var(--bg); color: var(--text); font-size: 18px; text-align: center;
+  direction: ltr;
+}
+.typing-input:focus { outline: none; border-color: var(--amber); }
+
+.xp-float {
+  position: absolute; top: 30%; left: 50%; transform: translateX(-50%);
+  font-size: 24px; font-weight: 700; color: var(--amber);
+  animation: xpFloat 1.5s ease-out forwards; pointer-events: none; z-index: 10;
+}
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: var(--bg2); border-radius: 16px; padding: 24px; width: 100%;
+  max-width: 400px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--bg3);
+}
+
+.combo-badge {
+  position: absolute; top: 12px; right: 12px; background: var(--amber);
+  color: #000; padding: 4px 10px; border-radius: 20px; font-size: 12px;
+  font-weight: 700;
+}
+
+.session-timer {
+  position: absolute; top: 12px; left: 12px; color: var(--text3);
+  font-size: 12px; font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useRef, useCallback, useMemo} = React;
+
+// ======================== KANJI DATABASE ========================
+const KANJI_DB = [
+// N5 - 80 kanji
+{c:'一',en:'one',he:'אחד',on:['イチ','イツ'],kun:['ひと.つ'],s:1,j:'N5',v:[{w:'一つ',r:'ひとつ',en:'one thing',he:'דבר אחד'}]},
+{c:'二',en:'two',he:'שניים',on:['ニ'],kun:['ふた.つ'],s:2,j:'N5',v:[{w:'二つ',r:'ふたつ',en:'two things',he:'שני דברים'}]},
+{c:'三',en:'three',he:'שלושה',on:['サン'],kun:['みっ.つ'],s:3,j:'N5',v:[{w:'三つ',r:'みっつ',en:'three things',he:'שלושה דברים'}]},
+{c:'四',en:'four',he:'ארבעה',on:['シ'],kun:['よ.つ','よん'],s:5,j:'N5',v:[{w:'四つ',r:'よっつ',en:'four things',he:'ארבעה דברים'}]},
+{c:'五',en:'five',he:'חמישה',on:['ゴ'],kun:['いつ.つ'],s:4,j:'N5',v:[{w:'五つ',r:'いつつ',en:'five things',he:'חמישה דברים'}]},
+{c:'六',en:'six',he:'שישה',on:['ロク'],kun:['む.つ'],s:4,j:'N5',v:[{w:'六つ',r:'むっつ',en:'six things',he:'שישה דברים'}]},
+{c:'七',en:'seven',he:'שבעה',on:['シチ'],kun:['なな.つ'],s:2,j:'N5',v:[{w:'七つ',r:'ななつ',en:'seven things',he:'שבעה דברים'}]},
+{c:'八',en:'eight',he:'שמונה',on:['ハチ'],kun:['や.つ'],s:2,j:'N5',v:[{w:'八つ',r:'やっつ',en:'eight things',he:'שמונה דברים'}]},
+{c:'九',en:'nine',he:'תשעה',on:['キュウ','ク'],kun:['ここの.つ'],s:2,j:'N5',v:[{w:'九つ',r:'ここのつ',en:'nine things',he:'תשעה דברים'}]},
+{c:'十',en:'ten',he:'עשר',on:['ジュウ'],kun:['とお'],s:2,j:'N5',v:[{w:'十',r:'じゅう',en:'ten',he:'עשר'}]},
+{c:'百',en:'hundred',he:'מאה',on:['ヒャク'],kun:[],s:6,j:'N5',v:[{w:'百',r:'ひゃく',en:'hundred',he:'מאה'}]},
+{c:'千',en:'thousand',he:'אלף',on:['セン'],kun:['ち'],s:3,j:'N5',v:[{w:'千',r:'せん',en:'thousand',he:'אלף'}]},
+{c:'万',en:'ten thousand',he:'עשרת אלפים',on:['マン','バン'],kun:[],s:3,j:'N5',v:[{w:'一万',r:'いちまん',en:'ten thousand',he:'עשרת אלפים'}]},
+{c:'円',en:'circle/yen',he:'יֵן/עיגול',on:['エン'],kun:['まる.い'],s:4,j:'N5',v:[{w:'百円',r:'ひゃくえん',en:'100 yen',he:'מאה יֵן'}]},
+{c:'時',en:'time/hour',he:'שעה/זמן',on:['ジ'],kun:['とき'],s:10,j:'N5',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
+{c:'日',en:'day/sun',he:'יום/שמש',on:['ニチ','ジツ'],kun:['ひ','か'],s:4,j:'N5',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
+{c:'月',en:'month/moon',he:'חודש/ירח',on:['ゲツ','ガツ'],kun:['つき'],s:4,j:'N5',v:[{w:'一月',r:'いちがつ',en:'January',he:'ינואר'}]},
+{c:'火',en:'fire',he:'אש',on:['カ'],kun:['ひ'],s:4,j:'N5',v:[{w:'火曜日',r:'かようび',en:'Tuesday',he:'יום שלישי'}]},
+{c:'水',en:'water',he:'מים',on:['スイ'],kun:['みず'],s:4,j:'N5',v:[{w:'水曜日',r:'すいようび',en:'Wednesday',he:'יום רביעי'}]},
+{c:'木',en:'tree/wood',he:'עץ',on:['モク','ボク'],kun:['き'],s:4,j:'N5',v:[{w:'木曜日',r:'もくようび',en:'Thursday',he:'יום חמישי'}]},
+{c:'金',en:'gold/money',he:'זהב/כסף',on:['キン','コン'],kun:['かね'],s:8,j:'N5',v:[{w:'お金',r:'おかね',en:'money',he:'כסף'}]},
+{c:'土',en:'earth/soil',he:'אדמה',on:['ド','ト'],kun:['つち'],s:3,j:'N5',v:[{w:'土曜日',r:'どようび',en:'Saturday',he:'יום שבת'}]},
+{c:'曜',en:'day of week',he:'יום בשבוע',on:['ヨウ'],kun:[],s:18,j:'N5',v:[{w:'曜日',r:'ようび',en:'day of week',he:'יום בשבוע'}]},
+{c:'年',en:'year',he:'שנה',on:['ネン'],kun:['とし'],s:6,j:'N5',v:[{w:'今年',r:'ことし',en:'this year',he:'השנה'}]},
+{c:'人',en:'person',he:'אדם',on:['ジン','ニン'],kun:['ひと'],s:2,j:'N5',v:[{w:'日本人',r:'にほんじん',en:'Japanese person',he:'יפני'}]},
+{c:'女',en:'woman',he:'אישה',on:['ジョ'],kun:['おんな'],s:3,j:'N5',v:[{w:'女の人',r:'おんなのひと',en:'woman',he:'אישה'}]},
+{c:'男',en:'man',he:'גבר',on:['ダン','ナン'],kun:['おとこ'],s:7,j:'N5',v:[{w:'男の人',r:'おとこのひと',en:'man',he:'גבר'}]},
+{c:'子',en:'child',he:'ילד',on:['シ','ス'],kun:['こ'],s:3,j:'N5',v:[{w:'子供',r:'こども',en:'child',he:'ילד'}]},
+{c:'学',en:'study',he:'ללמוד',on:['ガク'],kun:['まな.ぶ'],s:8,j:'N5',v:[{w:'学生',r:'がくせい',en:'student',he:'תלמיד'}]},
+{c:'生',en:'life/birth',he:'חיים/לידה',on:['セイ','ショウ'],kun:['い.きる','う.まれる'],s:5,j:'N5',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
+{c:'先',en:'previous/ahead',he:'קודם/לפני',on:['セン'],kun:['さき'],s:6,j:'N5',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
+{c:'何',en:'what',he:'מה',on:['カ'],kun:['なに','なん'],s:7,j:'N5',v:[{w:'何時',r:'なんじ',en:'what time',he:'מתי'}]},
+{c:'上',en:'up/above',he:'למעלה',on:['ジョウ'],kun:['うえ','あ.がる'],s:3,j:'N5',v:[{w:'上手',r:'じょうず',en:'skillful',he:'מיומן'}]},
+{c:'下',en:'down/below',he:'למטה',on:['カ','ゲ'],kun:['した','さ.がる'],s:3,j:'N5',v:[{w:'下手',r:'へた',en:'unskillful',he:'לא מיומן'}]},
+{c:'中',en:'middle/inside',he:'אמצע/פנים',on:['チュウ'],kun:['なか'],s:4,j:'N5',v:[{w:'中国',r:'ちゅうごく',en:'China',he:'סין'}]},
+{c:'大',en:'big',he:'גדול',on:['ダイ','タイ'],kun:['おお.きい'],s:3,j:'N5',v:[{w:'大きい',r:'おおきい',en:'big',he:'גדול'}]},
+{c:'小',en:'small',he:'קטן',on:['ショウ'],kun:['ちい.さい','こ'],s:3,j:'N5',v:[{w:'小さい',r:'ちいさい',en:'small',he:'קטן'}]},
+{c:'高',en:'tall/expensive',he:'גבוה/יקר',on:['コウ'],kun:['たか.い'],s:10,j:'N5',v:[{w:'高い',r:'たかい',en:'expensive',he:'יקר'}]},
+{c:'安',en:'cheap/safe',he:'זול/בטוח',on:['アン'],kun:['やす.い'],s:6,j:'N5',v:[{w:'安い',r:'やすい',en:'cheap',he:'זול'}]},
+{c:'新',en:'new',he:'חדש',on:['シン'],kun:['あたら.しい'],s:13,j:'N5',v:[{w:'新しい',r:'あたらしい',en:'new',he:'חדש'}]},
+{c:'古',en:'old',he:'ישן',on:['コ'],kun:['ふる.い'],s:5,j:'N5',v:[{w:'古い',r:'ふるい',en:'old',he:'ישן'}]},
+{c:'長',en:'long/chief',he:'ארוך/ראש',on:['チョウ'],kun:['なが.い'],s:8,j:'N5',v:[{w:'長い',r:'ながい',en:'long',he:'ארוך'}]},
+{c:'短',en:'short',he:'קצר',on:['タン'],kun:['みじか.い'],s:12,j:'N5',v:[{w:'短い',r:'みじかい',en:'short',he:'קצר'}]},
+{c:'白',en:'white',he:'לבן',on:['ハク','ビャク'],kun:['しろ.い'],s:5,j:'N5',v:[{w:'白い',r:'しろい',en:'white',he:'לבן'}]},
+{c:'間',en:'interval/between',he:'מרווח/בין',on:['カン','ケン'],kun:['あいだ','ま'],s:12,j:'N5',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
+{c:'食',en:'eat/food',he:'לאכול/אוכל',on:['ショク'],kun:['た.べる'],s:9,j:'N5',v:[{w:'食べる',r:'たべる',en:'to eat',he:'לאכול'}]},
+{c:'飲',en:'drink',he:'לשתות',on:['イン'],kun:['の.む'],s:12,j:'N5',v:[{w:'飲む',r:'のむ',en:'to drink',he:'לשתות'}]},
+{c:'見',en:'see/look',he:'לראות',on:['ケン'],kun:['み.る'],s:7,j:'N5',v:[{w:'見る',r:'みる',en:'to see',he:'לראות'}]},
+{c:'聞',en:'hear/ask',he:'לשמוע',on:['ブン','モン'],kun:['き.く'],s:14,j:'N5',v:[{w:'聞く',r:'きく',en:'to hear',he:'לשמוע'}]},
+{c:'読',en:'read',he:'לקרוא',on:['ドク','トク'],kun:['よ.む'],s:14,j:'N5',v:[{w:'読む',r:'よむ',en:'to read',he:'לקרוא'}]},
+{c:'書',en:'write',he:'לכתוב',on:['ショ'],kun:['か.く'],s:10,j:'N5',v:[{w:'書く',r:'かく',en:'to write',he:'לכתוב'}]},
+{c:'話',en:'talk/story',he:'לדבר/סיפור',on:['ワ'],kun:['はな.す','はなし'],s:13,j:'N5',v:[{w:'電話',r:'でんわ',en:'telephone',he:'טלפון'}]},
+{c:'語',en:'language/word',he:'שפה/מילה',on:['ゴ'],kun:['かた.る'],s:14,j:'N5',v:[{w:'日本語',r:'にほんご',en:'Japanese',he:'יפנית'}]},
+{c:'言',en:'say',he:'לומר',on:['ゲン','ゴン'],kun:['い.う','こと'],s:7,j:'N5',v:[{w:'言う',r:'いう',en:'to say',he:'לומר'}]},
+{c:'行',en:'go/row',he:'ללכת/שורה',on:['コウ','ギョウ'],kun:['い.く','おこな.う'],s:6,j:'N5',v:[{w:'行く',r:'いく',en:'to go',he:'ללכת'}]},
+{c:'来',en:'come',he:'לבוא',on:['ライ'],kun:['く.る'],s:7,j:'N5',v:[{w:'来る',r:'くる',en:'to come',he:'לבוא'}]},
+{c:'出',en:'exit/put out',he:'לצאת',on:['シュツ'],kun:['で.る','だ.す'],s:5,j:'N5',v:[{w:'出る',r:'でる',en:'to exit',he:'לצאת'}]},
+{c:'入',en:'enter',he:'להיכנס',on:['ニュウ'],kun:['い.る','はい.る'],s:2,j:'N5',v:[{w:'入る',r:'はいる',en:'to enter',he:'להיכנס'}]},
+{c:'休',en:'rest',he:'לנוח',on:['キュウ'],kun:['やす.む'],s:6,j:'N5',v:[{w:'休む',r:'やすむ',en:'to rest',he:'לנוח'}]},
+{c:'立',en:'stand',he:'לעמוד',on:['リツ'],kun:['た.つ'],s:5,j:'N5',v:[{w:'立つ',r:'たつ',en:'to stand',he:'לעמוד'}]},
+{c:'前',en:'before/front',he:'לפני/קדימה',on:['ゼン'],kun:['まえ'],s:9,j:'N5',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
+{c:'後',en:'after/behind',he:'אחרי/מאחור',on:['ゴ','コウ'],kun:['うし.ろ','あと'],s:9,j:'N5',v:[{w:'午後',r:'ごご',en:'afternoon',he:'אחר הצהריים'}]},
+{c:'左',en:'left',he:'שמאל',on:['サ'],kun:['ひだり'],s:5,j:'N5',v:[{w:'左',r:'ひだり',en:'left',he:'שמאל'}]},
+{c:'右',en:'right',he:'ימין',on:['ウ','ユウ'],kun:['みぎ'],s:5,j:'N5',v:[{w:'右',r:'みぎ',en:'right',he:'ימין'}]},
+{c:'北',en:'north',he:'צפון',on:['ホク'],kun:['きた'],s:5,j:'N5',v:[{w:'北',r:'きた',en:'north',he:'צפון'}]},
+{c:'南',en:'south',he:'דרום',on:['ナン'],kun:['みなみ'],s:9,j:'N5',v:[{w:'南',r:'みなみ',en:'south',he:'דרום'}]},
+{c:'東',en:'east',he:'מזרח',on:['トウ'],kun:['ひがし'],s:8,j:'N5',v:[{w:'東京',r:'とうきょう',en:'Tokyo',he:'טוקיו'}]},
+{c:'西',en:'west',he:'מערב',on:['セイ','サイ'],kun:['にし'],s:6,j:'N5',v:[{w:'西',r:'にし',en:'west',he:'מערב'}]},
+{c:'外',en:'outside',he:'בחוץ',on:['ガイ','ゲ'],kun:['そと','ほか'],s:5,j:'N5',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
+{c:'国',en:'country',he:'מדינה',on:['コク'],kun:['くに'],s:8,j:'N5',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
+{c:'名',en:'name',he:'שם',on:['メイ','ミョウ'],kun:['な'],s:6,j:'N5',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
+{c:'電',en:'electricity',he:'חשמל',on:['デン'],kun:[],s:13,j:'N5',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
+{c:'車',en:'car/vehicle',he:'מכונית/רכב',on:['シャ'],kun:['くるま'],s:7,j:'N5',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
+{c:'天',en:'heaven/sky',he:'שמיים',on:['テン'],kun:['あめ','あま'],s:4,j:'N5',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
+{c:'気',en:'spirit/air',he:'רוח/אוויר',on:['キ','ケ'],kun:[],s:6,j:'N5',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
+{c:'雨',en:'rain',he:'גשם',on:['ウ'],kun:['あめ'],s:8,j:'N5',v:[{w:'雨',r:'あめ',en:'rain',he:'גשם'}]},
+{c:'本',en:'book/origin',he:'ספר/מקור',on:['ホン'],kun:['もと'],s:5,j:'N5',v:[{w:'日本',r:'にほん',en:'Japan',he:'יפן'}]},
+{c:'友',en:'friend',he:'חבר',on:['ユウ'],kun:['とも'],s:4,j:'N5',v:[{w:'友達',r:'ともだち',en:'friend',he:'חבר'}]},
+{c:'半',en:'half',he:'חצי',on:['ハン'],kun:['なか.ば'],s:5,j:'N5',v:[{w:'半分',r:'はんぶん',en:'half',he:'חצי'}]},
+{c:'母',en:'mother',he:'אמא',on:['ボ'],kun:['はは'],s:5,j:'N5',v:[{w:'お母さん',r:'おかあさん',en:'mother',he:'אמא'}]},
+{c:'父',en:'father',he:'אבא',on:['フ'],kun:['ちち'],s:4,j:'N5',v:[{w:'お父さん',r:'おとうさん',en:'father',he:'אבא'}]},
+{c:'毎',en:'every',he:'כל',on:['マイ'],kun:[],s:6,j:'N5',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
+
+// N4 - 50 kanji
+{c:'自',en:'self',he:'עצמי',on:['ジ','シ'],kun:['みずか.ら'],s:6,j:'N4',v:[{w:'自分',r:'じぶん',en:'oneself',he:'עצמי'}]},
+{c:'分',en:'part/minute',he:'חלק/דקה',on:['ブン','フン'],kun:['わ.かる'],s:4,j:'N4',v:[{w:'自分',r:'じぶん',en:'oneself',he:'עצמי'}]},
+{c:'会',en:'meet/society',he:'לפגוש/חברה',on:['カイ'],kun:['あ.う'],s:6,j:'N4',v:[{w:'会社',r:'かいしゃ',en:'company',he:'חברה'}]},
+{c:'社',en:'company/shrine',he:'חברה/מקדש',on:['シャ'],kun:['やしろ'],s:7,j:'N4',v:[{w:'会社',r:'かいしゃ',en:'company',he:'חברה'}]},
+{c:'知',en:'know',he:'לדעת',on:['チ'],kun:['し.る'],s:8,j:'N4',v:[{w:'知る',r:'しる',en:'to know',he:'לדעת'}]},
+{c:'思',en:'think',he:'לחשוב',on:['シ'],kun:['おも.う'],s:9,j:'N4',v:[{w:'思う',r:'おもう',en:'to think',he:'לחשוב'}]},
+{c:'耳',en:'ear',he:'אוזן',on:['ジ'],kun:['みみ'],s:6,j:'N4',v:[{w:'耳',r:'みみ',en:'ear',he:'אוזן'}]},
+{c:'手',en:'hand',he:'יד',on:['シュ'],kun:['て'],s:4,j:'N4',v:[{w:'上手',r:'じょうず',en:'skillful',he:'מיומן'}]},
+{c:'目',en:'eye',he:'עין',on:['モク'],kun:['め'],s:5,j:'N4',v:[{w:'目',r:'め',en:'eye',he:'עין'}]},
+{c:'口',en:'mouth',he:'פה',on:['コウ','ク'],kun:['くち'],s:3,j:'N4',v:[{w:'入口',r:'いりぐち',en:'entrance',he:'כניסה'}]},
+{c:'足',en:'foot/leg',he:'רגל',on:['ソク'],kun:['あし','た.りる'],s:7,j:'N4',v:[{w:'足',r:'あし',en:'foot',he:'רגל'}]},
+{c:'力',en:'power',he:'כוח',on:['リョク','リキ'],kun:['ちから'],s:2,j:'N4',v:[{w:'力',r:'ちから',en:'power',he:'כוח'}]},
+{c:'体',en:'body',he:'גוף',on:['タイ'],kun:['からだ'],s:7,j:'N4',v:[{w:'体',r:'からだ',en:'body',he:'גוף'}]},
+{c:'心',en:'heart/mind',he:'לב/נפש',on:['シン'],kun:['こころ'],s:4,j:'N4',v:[{w:'心',r:'こころ',en:'heart',he:'לב'}]},
+{c:'頭',en:'head',he:'ראש',on:['トウ','ズ'],kun:['あたま'],s:16,j:'N4',v:[{w:'頭',r:'あたま',en:'head',he:'ראש'}]},
+{c:'顔',en:'face',he:'פנים',on:['ガン'],kun:['かお'],s:18,j:'N4',v:[{w:'顔',r:'かお',en:'face',he:'פנים'}]},
+{c:'声',en:'voice',he:'קול',on:['セイ'],kun:['こえ'],s:7,j:'N4',v:[{w:'声',r:'こえ',en:'voice',he:'קול'}]},
+{c:'色',en:'color',he:'צבע',on:['ショク','シキ'],kun:['いろ'],s:6,j:'N4',v:[{w:'色',r:'いろ',en:'color',he:'צבע'}]},
+{c:'花',en:'flower',he:'פרח',on:['カ'],kun:['はな'],s:7,j:'N4',v:[{w:'花',r:'はな',en:'flower',he:'פרח'}]},
+{c:'空',en:'sky/empty',he:'שמיים/ריק',on:['クウ'],kun:['そら','あ.く','から'],s:8,j:'N4',v:[{w:'空',r:'そら',en:'sky',he:'שמיים'}]},
+{c:'山',en:'mountain',he:'הר',on:['サン'],kun:['やま'],s:3,j:'N4',v:[{w:'山',r:'やま',en:'mountain',he:'הר'}]},
+{c:'川',en:'river',he:'נהר',on:['セン'],kun:['かわ'],s:3,j:'N4',v:[{w:'川',r:'かわ',en:'river',he:'נהר'}]},
+{c:'海',en:'sea',he:'ים',on:['カイ'],kun:['うみ'],s:9,j:'N4',v:[{w:'海',r:'うみ',en:'sea',he:'ים'}]},
+{c:'地',en:'ground/earth',he:'קרקע/ארץ',on:['チ','ジ'],kun:[],s:6,j:'N4',v:[{w:'地図',r:'ちず',en:'map',he:'מפה'}]},
+{c:'場',en:'place',he:'מקום',on:['ジョウ'],kun:['ば'],s:12,j:'N4',v:[{w:'場所',r:'ばしょ',en:'place',he:'מקום'}]},
+{c:'道',en:'road/way',he:'דרך/כביש',on:['ドウ'],kun:['みち'],s:12,j:'N4',v:[{w:'道',r:'みち',en:'road',he:'דרך'}]},
+{c:'町',en:'town',he:'עיירה',on:['チョウ'],kun:['まち'],s:7,j:'N4',v:[{w:'町',r:'まち',en:'town',he:'עיירה'}]},
+{c:'村',en:'village',he:'כפר',on:['ソン'],kun:['むら'],s:7,j:'N4',v:[{w:'村',r:'むら',en:'village',he:'כפר'}]},
+{c:'朝',en:'morning',he:'בוקר',on:['チョウ'],kun:['あさ'],s:12,j:'N4',v:[{w:'朝',r:'あさ',en:'morning',he:'בוקר'}]},
+{c:'昼',en:'noon/daytime',he:'צהריים',on:['チュウ'],kun:['ひる'],s:9,j:'N4',v:[{w:'昼',r:'ひる',en:'noon',he:'צהריים'}]},
+{c:'夜',en:'night',he:'לילה',on:['ヤ'],kun:['よ','よる'],s:8,j:'N4',v:[{w:'夜',r:'よる',en:'night',he:'לילה'}]},
+{c:'夕',en:'evening',he:'ערב',on:['セキ'],kun:['ゆう'],s:3,j:'N4',v:[{w:'夕方',r:'ゆうがた',en:'evening',he:'ערב'}]},
+{c:'春',en:'spring',he:'אביב',on:['シュン'],kun:['はる'],s:9,j:'N4',v:[{w:'春',r:'はる',en:'spring',he:'אביב'}]},
+{c:'夏',en:'summer',he:'קיץ',on:['カ'],kun:['なつ'],s:10,j:'N4',v:[{w:'夏',r:'なつ',en:'summer',he:'קיץ'}]},
+{c:'秋',en:'autumn',he:'סתיו',on:['シュウ'],kun:['あき'],s:9,j:'N4',v:[{w:'秋',r:'あき',en:'autumn',he:'סתיו'}]},
+{c:'冬',en:'winter',he:'חורף',on:['トウ'],kun:['ふゆ'],s:5,j:'N4',v:[{w:'冬',r:'ふゆ',en:'winter',he:'חורף'}]},
+{c:'家',en:'house/home',he:'בית',on:['カ','ケ'],kun:['いえ','うち'],s:10,j:'N4',v:[{w:'家',r:'いえ',en:'house',he:'בית'}]},
+{c:'室',en:'room',he:'חדר',on:['シツ'],kun:['むろ'],s:9,j:'N4',v:[{w:'教室',r:'きょうしつ',en:'classroom',he:'כיתה'}]},
+{c:'店',en:'shop',he:'חנות',on:['テン'],kun:['みせ'],s:8,j:'N4',v:[{w:'店',r:'みせ',en:'shop',he:'חנות'}]},
+{c:'病',en:'sick/illness',he:'חולה/מחלה',on:['ビョウ'],kun:['や.む'],s:10,j:'N4',v:[{w:'病院',r:'びょういん',en:'hospital',he:'בית חולים'}]},
+{c:'院',en:'institute',he:'מוסד',on:['イン'],kun:[],s:10,j:'N4',v:[{w:'病院',r:'びょういん',en:'hospital',he:'בית חולים'}]},
+{c:'教',en:'teach',he:'ללמד',on:['キョウ'],kun:['おし.える'],s:11,j:'N4',v:[{w:'教える',r:'おしえる',en:'to teach',he:'ללמד'}]},
+{c:'勉',en:'exertion',he:'מאמץ',on:['ベン'],kun:['つと.める'],s:10,j:'N4',v:[{w:'勉強',r:'べんきょう',en:'study',he:'לימוד'}]},
+{c:'強',en:'strong',he:'חזק',on:['キョウ','ゴウ'],kun:['つよ.い'],s:11,j:'N4',v:[{w:'勉強',r:'べんきょう',en:'study',he:'לימוד'}]},
+{c:'多',en:'many',he:'הרבה',on:['タ'],kun:['おお.い'],s:6,j:'N4',v:[{w:'多い',r:'おおい',en:'many',he:'הרבה'}]},
+{c:'少',en:'few/little',he:'מעט',on:['ショウ'],kun:['すく.ない','すこ.し'],s:4,j:'N4',v:[{w:'少し',r:'すこし',en:'a little',he:'קצת'}]},
+{c:'早',en:'early/fast',he:'מוקדם/מהיר',on:['ソウ','サッ'],kun:['はや.い'],s:6,j:'N4',v:[{w:'早い',r:'はやい',en:'early',he:'מוקדם'}]},
+{c:'近',en:'near',he:'קרוב',on:['キン'],kun:['ちか.い'],s:7,j:'N4',v:[{w:'近い',r:'ちかい',en:'near',he:'קרוב'}]},
+{c:'遠',en:'far',he:'רחוק',on:['エン'],kun:['とお.い'],s:13,j:'N4',v:[{w:'遠い',r:'とおい',en:'far',he:'רחוק'}]},
+{c:'広',en:'wide',he:'רחב',on:['コウ'],kun:['ひろ.い'],s:5,j:'N4',v:[{w:'広い',r:'ひろい',en:'wide',he:'רחב'}]},
+
+// N3 - 40 kanji
+{c:'政',en:'politics',he:'פוליטיקה',on:['セイ'],kun:['まつりごと'],s:9,j:'N3'},
+{c:'経',en:'sutra/economy',he:'כלכלה',on:['ケイ','キョウ'],kun:['へ.る'],s:11,j:'N3'},
+{c:'済',en:'settle/finish',he:'להסתיים',on:['サイ'],kun:['す.む'],s:11,j:'N3'},
+{c:'議',en:'deliberation',he:'דיון',on:['ギ'],kun:[],s:20,j:'N3'},
+{c:'民',en:'people/nation',he:'עם/אומה',on:['ミン'],kun:['たみ'],s:5,j:'N3'},
+{c:'連',en:'connect',he:'לחבר',on:['レン'],kun:['つら.なる','つ.れる'],s:10,j:'N3'},
+{c:'対',en:'opposite/versus',he:'מול/נגד',on:['タイ','ツイ'],kun:[],s:7,j:'N3'},
+{c:'部',en:'section/part',he:'חלק/מחלקה',on:['ブ'],kun:[],s:11,j:'N3'},
+{c:'合',en:'fit/join',he:'להתאים',on:['ゴウ','ガッ'],kun:['あ.う'],s:6,j:'N3'},
+{c:'市',en:'city/market',he:'עיר/שוק',on:['シ'],kun:['いち'],s:5,j:'N3'},
+{c:'内',en:'inside',he:'פנימי',on:['ナイ','ダイ'],kun:['うち'],s:4,j:'N3'},
+{c:'相',en:'mutual',he:'הדדי',on:['ソウ','ショウ'],kun:['あい'],s:9,j:'N3'},
+{c:'定',en:'determine/fix',he:'לקבוע',on:['テイ','ジョウ'],kun:['さだ.める'],s:8,j:'N3'},
+{c:'回',en:'times/revolve',he:'פעמים/לסובב',on:['カイ'],kun:['まわ.る'],s:6,j:'N3'},
+{c:'選',en:'elect/choose',he:'לבחור',on:['セン'],kun:['えら.ぶ'],s:15,j:'N3'},
+{c:'米',en:'rice/America',he:'אורז/אמריקה',on:['ベイ','マイ'],kun:['こめ'],s:6,j:'N3'},
+{c:'実',en:'truth/fruit',he:'אמת/פרי',on:['ジツ'],kun:['み','みの.る'],s:8,j:'N3'},
+{c:'関',en:'connection/barrier',he:'קשר/מחסום',on:['カン'],kun:['せき','かか.わる'],s:14,j:'N3'},
+{c:'決',en:'decide',he:'להחליט',on:['ケツ'],kun:['き.める'],s:7,j:'N3'},
+{c:'全',en:'all/whole',he:'כל/שלם',on:['ゼン'],kun:['まった.く','すべ.て'],s:6,j:'N3'},
+{c:'表',en:'surface/express',he:'פני שטח/לבטא',on:['ヒョウ'],kun:['おもて','あらわ.す'],s:8,j:'N3'},
+{c:'戦',en:'war/battle',he:'מלחמה/קרב',on:['セン'],kun:['いくさ','たたか.う'],s:13,j:'N3'},
+{c:'届',en:'deliver/reach',he:'להגיע/למסור',on:['トドケ'],kun:['とど.ける'],s:8,j:'N3'},
+{c:'変',en:'change/strange',he:'שינוי/מוזר',on:['ヘン'],kun:['か.わる'],s:9,j:'N3'},
+{c:'付',en:'attach',he:'לצרף',on:['フ'],kun:['つ.ける'],s:5,j:'N3'},
+{c:'由',en:'reason/cause',he:'סיבה',on:['ユ','ユウ'],kun:['よし'],s:5,j:'N3'},
+{c:'説',en:'theory/explain',he:'תיאוריה/להסביר',on:['セツ'],kun:['と.く'],s:14,j:'N3'},
+{c:'受',en:'receive',he:'לקבל',on:['ジュ'],kun:['う.ける'],s:8,j:'N3'},
+{c:'法',en:'law/method',he:'חוק/שיטה',on:['ホウ'],kun:[],s:8,j:'N3'},
+{c:'問',en:'question',he:'שאלה',on:['モン'],kun:['と.う'],s:11,j:'N3'},
+{c:'題',en:'topic/title',he:'נושא/כותרת',on:['ダイ'],kun:[],s:18,j:'N3'},
+{c:'意',en:'meaning/mind',he:'משמעות/כוונה',on:['イ'],kun:[],s:13,j:'N3'},
+{c:'味',en:'taste/flavor',he:'טעם',on:['ミ'],kun:['あじ'],s:8,j:'N3'},
+{c:'注',en:'pour/note',he:'לשפוך/הערה',on:['チュウ'],kun:['そそ.ぐ'],s:8,j:'N3'},
+{c:'開',en:'open',he:'לפתוח',on:['カイ'],kun:['あ.ける','ひら.く'],s:12,j:'N3'},
+{c:'集',en:'gather/collect',he:'לאסוף',on:['シュウ'],kun:['あつ.める'],s:12,j:'N3'},
+{c:'品',en:'goods/dignity',he:'מוצר/איכות',on:['ヒン'],kun:['しな'],s:9,j:'N3'},
+{c:'発',en:'departure/emit',he:'יציאה/לשלוח',on:['ハツ','ホツ'],kun:[],s:9,j:'N3'},
+{c:'持',en:'hold/have',he:'להחזיק',on:['ジ'],kun:['も.つ'],s:9,j:'N3'},
+{c:'世',en:'world/generation',he:'עולם/דור',on:['セイ','セ'],kun:['よ'],s:5,j:'N3'},
+
+// N2 - 30 kanji
+{c:'権',en:'authority/right',he:'סמכות/זכות',on:['ケン','ゴン'],kun:[],s:15,j:'N2'},
+{c:'制',en:'system/control',he:'מערכת/שליטה',on:['セイ'],kun:[],s:8,j:'N2'},
+{c:'導',en:'guide/lead',he:'להנחות/להוביל',on:['ドウ'],kun:['みちび.く'],s:15,j:'N2'},
+{c:'構',en:'construct/posture',he:'לבנות/מבנה',on:['コウ'],kun:['かま.える'],s:14,j:'N2'},
+{c:'職',en:'employment',he:'תעסוקה/מקצוע',on:['ショク'],kun:[],s:18,j:'N2'},
+{c:'域',en:'area/region',he:'אזור/תחום',on:['イキ'],kun:[],s:11,j:'N2'},
+{c:'存',en:'exist/suppose',he:'להתקיים/קיום',on:['ソン','ゾン'],kun:[],s:6,j:'N2'},
+{c:'査',en:'inspect',he:'לבדוק/חקירה',on:['サ'],kun:[],s:9,j:'N2'},
+{c:'態',en:'attitude/state',he:'גישה/מצב',on:['タイ'],kun:[],s:14,j:'N2'},
+{c:'割',en:'proportion/divide',he:'חלוקה/יחס',on:['カツ'],kun:['わ.る','わり'],s:12,j:'N2'},
+{c:'演',en:'perform/act',he:'להופיע/לבצע',on:['エン'],kun:[],s:14,j:'N2'},
+{c:'識',en:'discriminate/know',he:'להבחין/לזהות',on:['シキ'],kun:[],s:19,j:'N2'},
+{c:'験',en:'test/effect',he:'מבחן/ניסיון',on:['ケン','ゲン'],kun:[],s:18,j:'N2'},
+{c:'犯',en:'crime/offend',he:'פשע/עבירה',on:['ハン'],kun:['おか.す'],s:5,j:'N2'},
+{c:'因',en:'cause/factor',he:'גורם/סיבה',on:['イン'],kun:[],s:6,j:'N2'},
+{c:'基',en:'foundation/base',he:'בסיס/יסוד',on:['キ'],kun:['もと','もとい'],s:11,j:'N2'},
+{c:'価',en:'value/price',he:'ערך/מחיר',on:['カ'],kun:['あたい'],s:8,j:'N2'},
+{c:'境',en:'boundary/border',he:'גבול/סביבה',on:['キョウ','ケイ'],kun:['さかい'],s:14,j:'N2'},
+{c:'賀',en:'congratulate',he:'ברכה/איחול',on:['ガ'],kun:[],s:12,j:'N2'},
+{c:'規',en:'standard/rule',he:'תקן/כלל',on:['キ'],kun:[],s:11,j:'N2'},
+{c:'術',en:'art/technique',he:'אמנות/טכניקה',on:['ジュツ'],kun:[],s:11,j:'N2'},
+{c:'資',en:'resources/capital',he:'משאבים/הון',on:['シ'],kun:[],s:13,j:'N2'},
+{c:'供',en:'offer/attendant',he:'להציע/ילד',on:['キョウ','ク'],kun:['そな.える','とも'],s:8,j:'N2'},
+{c:'断',en:'sever/refuse',he:'לסרב/לחתוך',on:['ダン'],kun:['た.つ','ことわ.る'],s:11,j:'N2'},
+{c:'容',en:'contain/form',he:'להכיל/צורה',on:['ヨウ'],kun:[],s:10,j:'N2'},
+{c:'易',en:'easy/divination',he:'קל/ניחוש',on:['エキ','イ'],kun:['やさ.しい'],s:8,j:'N2'},
+{c:'否',en:'negate/no',he:'לא/שלילה',on:['ヒ'],kun:['いな'],s:7,j:'N2'},
+{c:'絶',en:'sever/absolute',he:'מוחלט/לנתק',on:['ゼツ'],kun:['た.える','た.つ'],s:12,j:'N2'},
+{c:'率',en:'rate/ratio',he:'שיעור/יחס',on:['リツ','ソツ'],kun:['ひき.いる'],s:11,j:'N2'},
+{c:'略',en:'abbreviation/plan',he:'קיצור/תוכנית',on:['リャク'],kun:[],s:11,j:'N2'},
+
+// N1 - 20 kanji
+{c:'微',en:'delicate/minute',he:'עדין/זעיר',on:['ビ'],kun:[],s:13,j:'N1'},
+{c:'奏',en:'play music',he:'לנגן',on:['ソウ'],kun:['かな.でる'],s:9,j:'N1'},
+{c:'翼',en:'wing',he:'כנף',on:['ヨク'],kun:['つばさ'],s:17,j:'N1'},
+{c:'摘',en:'pinch/pick',he:'לקטוף/להצביע',on:['テキ'],kun:['つ.む'],s:14,j:'N1'},
+{c:'磨',en:'polish/grind',he:'ללטש/לשפשף',on:['マ'],kun:['みが.く'],s:16,j:'N1'},
+{c:'殿',en:'palace/lord',he:'ארמון/אדון',on:['デン','テン'],kun:['との'],s:13,j:'N1'},
+{c:'濃',en:'thick/concentrated',he:'עבה/מרוכז',on:['ノウ'],kun:['こ.い'],s:16,j:'N1'},
+{c:'縮',en:'shrink/reduce',he:'לכווץ/לצמצם',on:['シュク'],kun:['ちぢ.む'],s:17,j:'N1'},
+{c:'薦',en:'recommend',he:'להמליץ',on:['セン'],kun:['すす.める'],s:16,j:'N1'},
+{c:'覆',en:'cover/overturn',he:'לכסות/להפוך',on:['フク'],kun:['おお.う','くつがえ.す'],s:18,j:'N1'},
+{c:'菊',en:'chrysanthemum',he:'חרצית',on:['キク'],kun:[],s:11,j:'N1'},
+{c:'鬱',en:'depression/gloom',he:'דיכאון/עצב',on:['ウツ'],kun:[],s:29,j:'N1'},
+{c:'旋',en:'revolve/go around',he:'להסתובב',on:['セン'],kun:[],s:11,j:'N1'},
+{c:'嘆',en:'sigh/lament',he:'לנאנח/לקונן',on:['タン'],kun:['なげ.く'],s:13,j:'N1'},
+{c:'弦',en:'bowstring/chord',he:'מיתר',on:['ゲン'],kun:['つる'],s:8,j:'N1'},
+{c:'酌',en:'serve sake',he:'למזוג סאקה',on:['シャク'],kun:['く.む'],s:10,j:'N1'},
+{c:'鎮',en:'calm/suppress',he:'להרגיע/לדכא',on:['チン'],kun:['しず.める'],s:18,j:'N1'},
+{c:'漂',en:'drift/float',he:'לצוף/לנדוד',on:['ヒョウ'],kun:['ただよ.う'],s:14,j:'N1'},
+{c:'賠',en:'compensation',he:'פיצוי',on:['バイ'],kun:[],s:15,j:'N1'},
+{c:'摂',en:'take in/absorb',he:'לקלוט/לספוג',on:['セツ'],kun:['と.る'],s:13,j:'N1'},
+];
+
+// Deduplicate by character
+const seen = new Set();
+const KANJI = KANJI_DB.filter(k => {
+  if (seen.has(k.c)) return false;
+  seen.add(k.c);
+  return true;
+});
+
+// ======================== SRS SYSTEM ========================
+const SRS_STAGES = [
+  {name:'חדש', nameEn:'New', color:'#888', min:0, max:0},
+  {name:'חניך', nameEn:'Apprentice', color:'#dd42a5', min:1, max:4},
+  {name:'גורו', nameEn:'Guru', color:'#ab47bc', min:5, max:6},
+  {name:'מאסטר', nameEn:'Master', color:'#42a5f5', min:7, max:7},
+  {name:'מואר', nameEn:'Enlightened', color:'#42f5a7', min:8, max:8},
+  {name:'נצרב', nameEn:'Burned', color:'#f0a830', min:9, max:100},
+];
+
+const INTERVALS = [
+  {label:'שוב', labelEn:'Again', hours:0.07, delta:-2},     // ~4 min
+  {label:'קשה', labelEn:'Hard', hours:1, delta:-1},
+  {label:'טוב', labelEn:'Good', hours:0, delta:1},          // interval based on stage
+  {label:'קל', labelEn:'Easy', hours:0, delta:2},
+];
+
+function getStage(level) {
+  return SRS_STAGES.find(s => level >= s.min && level <= s.max) || SRS_STAGES[0];
+}
+
+function getIntervalText(stage, delta) {
+  const newLevel = Math.max(0, stage + delta);
+  if (newLevel <= 0) return '4 דק\'';
+  if (newLevel === 1) return '4 שעות';
+  if (newLevel === 2) return '8 שעות';
+  if (newLevel === 3) return '1 יום';
+  if (newLevel === 4) return '2 ימים';
+  if (newLevel === 5) return '1 שבוע';
+  if (newLevel === 6) return '2 שבועות';
+  if (newLevel === 7) return '1 חודש';
+  if (newLevel === 8) return '4 חודשים';
+  return 'נצרב ✓';
+}
+
+// ======================== AUDIO ========================
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'flip') { osc.frequency.value = 600; gain.gain.value = 0.08; osc.type = 'sine'; }
+    else if (type === 'correct') { osc.frequency.value = 800; gain.gain.value = 0.1; osc.type = 'sine'; }
+    else if (type === 'wrong') { osc.frequency.value = 300; gain.gain.value = 0.1; osc.type = 'sawtooth'; }
+    else if (type === 'levelup') { osc.frequency.value = 1000; gain.gain.value = 0.08; osc.type = 'sine'; }
+    else { osc.frequency.value = 500; gain.gain.value = 0.06; osc.type = 'sine'; }
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+
+// ======================== STORAGE ========================
+function loadData(key, def) {
+  try { const d = localStorage.getItem('kanji_' + key); return d ? JSON.parse(d) : def; } catch { return def; }
+}
+function saveData(key, val) {
+  try { localStorage.setItem('kanji_' + key, JSON.stringify(val)); } catch {}
+}
+
+// ======================== MAIN APP ========================
+function App() {
+  const [tab, setTab] = useState('home');
+  const [theme, setTheme] = useState(() => loadData('theme', 'dark'));
+  const [soundOn, setSoundOn] = useState(() => loadData('sound', true));
+  const [selectedLevels, setSelectedLevels] = useState(() => loadData('levels', ['N5']));
+  const [quizMode, setQuizMode] = useState(() => loadData('quizMode', 'flashcard'));
+  const [srsData, setSrsData] = useState(() => loadData('srs', {}));
+  const [stats, setStats] = useState(() => loadData('stats', {totalReviews:0, totalXP:0, streak:0, lastDate:null, dailyDone:0, dailyGoal:20}));
+  const [sessionTime, setSessionTime] = useState(0);
+  const [sessionActive, setSessionActive] = useState(false);
+  const [lastAction, setLastAction] = useState(null);
+
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); saveData('theme', theme); }, [theme]);
+  useEffect(() => { saveData('sound', soundOn); }, [soundOn]);
+  useEffect(() => { saveData('levels', selectedLevels); }, [selectedLevels]);
+  useEffect(() => { saveData('quizMode', quizMode); }, [quizMode]);
+  useEffect(() => { saveData('srs', srsData); }, [srsData]);
+  useEffect(() => { saveData('stats', stats); }, [stats]);
+
+  // Session timer
+  useEffect(() => {
+    let iv;
+    if (sessionActive) {
+      iv = setInterval(() => setSessionTime(t => t + 1), 1000);
+    }
+    return () => clearInterval(iv);
+  }, [sessionActive]);
+
+  // Check daily streak
+  useEffect(() => {
+    const today = new Date().toDateString();
+    if (stats.lastDate && stats.lastDate !== today) {
+      const last = new Date(stats.lastDate);
+      const diff = Math.floor((new Date(today) - last) / 86400000);
+      if (diff > 1) {
+        setStats(s => ({...s, streak: 0, dailyDone: 0, lastDate: today}));
+      } else {
+        setStats(s => ({...s, dailyDone: 0}));
+      }
+    }
+  }, []);
+
+  const filteredKanji = useMemo(() =>
+    KANJI.filter(k => selectedLevels.includes(k.j)),
+    [selectedLevels]
+  );
+
+  const toggleLevel = (lv) => {
+    setSelectedLevels(prev =>
+      prev.includes(lv) ? (prev.length > 1 ? prev.filter(l => l !== lv) : prev) : [...prev, lv]
+    );
+  };
+
+  const doSound = (type) => { if (soundOn) playSound(type); };
+
+  return (
+    <div>
+      <TopBar theme={theme} setTheme={setTheme} soundOn={soundOn} setSoundOn={setSoundOn}
+              sessionTime={sessionTime} sessionActive={sessionActive} />
+      {tab === 'home' && <HomePage stats={stats} filteredKanji={filteredKanji} srsData={srsData}
+                                    selectedLevels={selectedLevels} toggleLevel={toggleLevel} setTab={setTab} />}
+      {tab === 'study' && <StudyPage kanji={filteredKanji} srsData={srsData} setSrsData={setSrsData}
+                                      stats={stats} setStats={setStats} quizMode={quizMode} setQuizMode={setQuizMode}
+                                      doSound={doSound} sessionActive={sessionActive} setSessionActive={setSessionActive}
+                                      lastAction={lastAction} setLastAction={setLastAction} />}
+      {tab === 'explore' && <ExplorePage selectedLevels={selectedLevels} srsData={srsData} />}
+      {tab === 'add' && <AddPage selectedLevels={selectedLevels} toggleLevel={toggleLevel}
+                                  stats={stats} setStats={setStats} quizMode={quizMode} setQuizMode={setQuizMode} />}
+      {tab === 'stats' && <StatsPage stats={stats} srsData={srsData} />}
+      <NavBar tab={tab} setTab={setTab} />
+    </div>
+  );
+}
+
+// ======================== TOP BAR ========================
+function TopBar({theme, setTheme, soundOn, setSoundOn, sessionTime, sessionActive}) {
+  const fmt = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  return (
+    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderBottom:`1px solid var(--bg3)`}}>
+      <div style={{display:'flex', alignItems:'center', gap:8}}>
+        <span className="jp" style={{fontSize:24}}>漢字</span>
+        <span style={{fontWeight:700, fontSize:16}}>מאסטר</span>
+      </div>
+      <div style={{display:'flex', alignItems:'center', gap:12}}>
+        {sessionActive && <span style={{fontSize:12, color:'var(--amber)', fontWeight:600}}>{fmt(sessionTime)}</span>}
+        <button onClick={() => setSoundOn(!soundOn)} style={{fontSize:18}} title="Sound">
+          {soundOn ? '🔊' : '🔇'}
+        </button>
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{fontSize:18}} title="Theme">
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ======================== PROGRESS RING ========================
+function ProgressRing({progress, size=80, stroke=6}) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - Math.min(progress, 1) * circ;
+  return (
+    <svg width={size} height={size} style={{transform:'rotate(-90deg)'}}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg3)" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--amber)" strokeWidth={stroke}
+              strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+              style={{transition:'stroke-dashoffset 0.5s ease'}} />
+      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central" fill="var(--text)"
+            fontSize={size*0.22} fontWeight="700" style={{transform:'rotate(90deg)', transformOrigin:'center'}}>
+        {Math.round(progress * 100)}%
+      </text>
+    </svg>
+  );
+}
+
+// ======================== HOME PAGE ========================
+function HomePage({stats, filteredKanji, srsData, selectedLevels, toggleLevel, setTab}) {
+  const progress = stats.dailyGoal > 0 ? stats.dailyDone / stats.dailyGoal : 0;
+  const stageCount = {};
+  SRS_STAGES.forEach(s => stageCount[s.nameEn] = 0);
+  filteredKanji.forEach(k => {
+    const d = srsData[k.c];
+    const lv = d ? d.level : 0;
+    const stage = getStage(lv);
+    stageCount[stage.nameEn]++;
+  });
+  const dueCount = filteredKanji.filter(k => {
+    const d = srsData[k.c];
+    if (!d) return true;
+    return !d.nextReview || new Date(d.nextReview) <= new Date();
+  }).length;
+
+  return (
+    <div className="page">
+      <div className="card card-glow" style={{textAlign:'center'}}>
+        <div style={{marginBottom:12, fontSize:14, color:'var(--text2)'}}>יעד יומי</div>
+        <ProgressRing progress={progress} size={100} stroke={8} />
+        <div style={{marginTop:8, fontSize:14}}>{stats.dailyDone} / {stats.dailyGoal} חזרות</div>
+        <div style={{marginTop:4, fontSize:12, color:'var(--text3)'}}>רצף: {stats.streak} ימים</div>
+      </div>
+
+      <div className="card">
+        <div style={{fontSize:14, fontWeight:600, marginBottom:10}}>רמות ללימוד</div>
+        <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+          {['N5','N4','N3','N2','N1'].map(lv => (
+            <button key={lv} className={`chip ${selectedLevels.includes(lv) ? 'selected' : ''}`}
+                    onClick={() => toggleLevel(lv)}>{lv}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+          <span style={{fontWeight:600}}>מצב הקאנג'י</span>
+          <span style={{fontSize:13, color:'var(--amber)', fontWeight:600}}>{dueCount} ממתינים</span>
+        </div>
+        {SRS_STAGES.map(s => (
+          <div key={s.nameEn} style={{display:'flex', alignItems:'center', gap:8, marginBottom:6}}>
+            <div style={{width:10, height:10, borderRadius:'50%', background:s.color, flexShrink:0}} />
+            <span style={{fontSize:13, flex:1}}>{s.name}</span>
+            <span style={{fontSize:13, fontWeight:600}}>{stageCount[s.nameEn]}</span>
+          </div>
+        ))}
+      </div>
+
+      <button className="btn btn-primary btn-full" onClick={() => setTab('study')}
+              style={{fontSize:18, padding:16}}>
+        התחל לימוד ({dueCount})
+      </button>
+
+      <div className="card" style={{marginTop:12}}>
+        <div className="stat-row">
+          <span className="stat-label">סה"כ חזרות</span>
+          <span className="stat-value">{stats.totalReviews}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">XP</span>
+          <span className="stat-value" style={{color:'var(--amber)'}}>{stats.totalXP}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================== STUDY PAGE ========================
+function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQuizMode, doSound, sessionActive, setSessionActive, lastAction, setLastAction}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [xpFloat, setXpFloat] = useState(null);
+  const [mcOptions, setMcOptions] = useState([]);
+  const [mcAnswer, setMcAnswer] = useState(null);
+  const [typingVal, setTypingVal] = useState('');
+  const [typingResult, setTypingResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const dueKanji = useMemo(() => {
+    const now = new Date();
+    return kanji.filter(k => {
+      const d = srsData[k.c];
+      if (!d) return true;
+      return !d.nextReview || new Date(d.nextReview) <= now;
+    }).sort(() => Math.random() - 0.5);
+  }, [kanji, srsData]);
+
+  const current = dueKanji[currentIndex];
+
+  useEffect(() => {
+    if (!sessionActive && dueKanji.length > 0) setSessionActive(true);
+  }, []);
+
+  // Generate MC options
+  useEffect(() => {
+    if (quizMode === 'mc' && current) {
+      const correct = current;
+      const others = kanji.filter(k => k.c !== correct.c).sort(() => Math.random() - 0.5).slice(0, 3);
+      const opts = [correct, ...others].sort(() => Math.random() - 0.5);
+      setMcOptions(opts);
+      setMcAnswer(null);
+    }
+    if (quizMode === 'typing') {
+      setTypingVal('');
+      setTypingResult(null);
+    }
+  }, [currentIndex, quizMode, current?.c]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space' && quizMode === 'flashcard') {
+        e.preventDefault();
+        if (!flipped) { setFlipped(true); doSound('flip'); }
+      }
+      if (flipped && quizMode === 'flashcard' && ['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) {
+        const idx = parseInt(e.code.replace('Digit','')) - 1;
+        if (idx >= 0 && idx < 4) handleRate(idx);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [flipped, quizMode, current?.c]);
+
+  const handleRate = (ratingIdx) => {
+    if (!current) return;
+    const rating = INTERVALS[ratingIdx];
+    const prev = srsData[current.c] || {level: 0, reviews: 0};
+    const newLevel = Math.max(0, Math.min(9, prev.level + rating.delta));
+    const stage = getStage(newLevel);
+
+    // Calculate next review
+    let hours;
+    if (newLevel <= 0) hours = 0.07;
+    else if (newLevel === 1) hours = 4;
+    else if (newLevel === 2) hours = 8;
+    else if (newLevel === 3) hours = 24;
+    else if (newLevel === 4) hours = 48;
+    else if (newLevel === 5) hours = 168;
+    else if (newLevel === 6) hours = 336;
+    else if (newLevel === 7) hours = 720;
+    else if (newLevel === 8) hours = 2880;
+    else hours = 999999;
+
+    const nextReview = new Date(Date.now() + hours * 3600000).toISOString();
+
+    // Save undo
+    setLastAction({char: current.c, prevSrs: prev, prevStats: {...stats}});
+
+    // Combo & XP
+    const isGood = ratingIdx >= 2;
+    const newCombo = isGood ? combo + 1 : 0;
+    const multiplier = Math.min(1 + Math.floor(newCombo / 3) * 0.5, 3);
+    const baseXP = ratingIdx === 3 ? 15 : ratingIdx === 2 ? 10 : ratingIdx === 1 ? 5 : 2;
+    const earnedXP = Math.round(baseXP * multiplier);
+
+    if (isGood) doSound('correct');
+    else doSound('wrong');
+    if (newLevel > prev.level && newLevel >= 5) doSound('levelup');
+
+    setCombo(newCombo);
+    setXpFloat(earnedXP);
+    setTimeout(() => setXpFloat(null), 1500);
+
+    setSrsData(d => ({...d, [current.c]: {level: newLevel, reviews: (prev.reviews||0)+1, nextReview, lastReview: new Date().toISOString()}}));
+
+    const today = new Date().toDateString();
+    setStats(s => ({
+      ...s,
+      totalReviews: s.totalReviews + 1,
+      totalXP: s.totalXP + earnedXP,
+      dailyDone: s.dailyDone + 1,
+      lastDate: today,
+      streak: s.lastDate === today ? s.streak : (s.streak + 1),
+    }));
+
+    // Next card
+    setFlipped(false);
+    if (currentIndex < dueKanji.length - 1) {
+      setCurrentIndex(i => i + 1);
+    }
+  };
+
+  const handleMCSelect = (k) => {
+    if (mcAnswer) return;
+    setMcAnswer(k.c);
+    const isCorrect = k.c === current.c;
+    if (isCorrect) {
+      doSound('correct');
+      setTimeout(() => handleRate(2), 800);
+    } else {
+      doSound('wrong');
+      setTimeout(() => handleRate(0), 1200);
+    }
+  };
+
+  const handleTypingSubmit = (e) => {
+    e.preventDefault();
+    if (!current || typingResult !== null) return;
+    const val = typingVal.trim().toLowerCase();
+    const correct = current.en.toLowerCase();
+    const isCorrect = val === correct || current.he === val;
+    setTypingResult(isCorrect);
+    if (isCorrect) {
+      doSound('correct');
+      setTimeout(() => handleRate(2), 800);
+    } else {
+      doSound('wrong');
+      setTimeout(() => handleRate(0), 1200);
+    }
+  };
+
+  const handleUndo = () => {
+    if (!lastAction) return;
+    setSrsData(d => {
+      const nd = {...d};
+      if (lastAction.prevSrs.level === 0 && !lastAction.prevSrs.reviews) {
+        delete nd[lastAction.char];
+      } else {
+        nd[lastAction.char] = lastAction.prevSrs;
+      }
+      return nd;
+    });
+    setStats(lastAction.prevStats);
+    setCurrentIndex(i => Math.max(0, i - 1));
+    setFlipped(false);
+    setLastAction(null);
+  };
+
+  if (!current || dueKanji.length === 0) {
+    return (
+      <div className="page" style={{textAlign:'center', paddingTop:60}}>
+        <div style={{fontSize:64, marginBottom:20}}>🎉</div>
+        <div style={{fontSize:22, fontWeight:700, marginBottom:8}}>כל הכבוד!</div>
+        <div style={{color:'var(--text2)', marginBottom:20}}>סיימת את כל החזרות. חזור מאוחר יותר.</div>
+        <div style={{fontSize:14, color:'var(--text3)'}}>XP שנצבר: {stats.totalXP}</div>
+      </div>
+    );
+  }
+
+  const curSrs = srsData[current.c] || {level:0};
+  const stage = getStage(curSrs.level);
+
+  return (
+    <div className="page">
+      {/* Mode selector */}
+      <div style={{display:'flex', gap:6, marginBottom:12}}>
+        {[{k:'flashcard',l:'כרטיס'},{k:'mc',l:'רב-ברירה'},{k:'typing',l:'הקלדה'}].map(m => (
+          <button key={m.k} className={`tab ${quizMode === m.k ? 'active' : ''}`}
+                  onClick={() => { setQuizMode(m.k); saveData('quizMode', m.k); setFlipped(false); }}>
+            {m.l}
+          </button>
+        ))}
+      </div>
+
+      {/* Progress */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, fontSize:13, color:'var(--text2)'}}>
+        <span>{currentIndex + 1} / {dueKanji.length}</span>
+        {lastAction && <button onClick={handleUndo} style={{color:'var(--amber)', fontSize:12, fontWeight:600}}>↩ בטל</button>}
+      </div>
+      <div className="progress-bar" style={{marginBottom:12}}>
+        <div className="progress-fill" style={{width:`${(currentIndex/dueKanji.length)*100}%`, background:'var(--amber)'}} />
+      </div>
+
+      {/* Card */}
+      <div className="study-card">
+        {combo > 2 && <div className="combo-badge" style={{animation:'streak 0.5s ease'}}>x{combo} קומבו</div>}
+        {xpFloat && <div className="xp-float">+{xpFloat} XP</div>}
+        <div className="study-card-inner">
+          <div className="badge" style={{background:stage.color+'33', color:stage.color}}>{stage.name}</div>
+          <div className="jp kanji-large">{current.c}</div>
+          <div style={{fontSize:12, color:'var(--text3)'}}>שבצים: {current.s} | {current.j}</div>
+
+          {quizMode === 'flashcard' && !flipped && (
+            <button className="btn btn-primary" onClick={() => { setFlipped(true); doSound('flip'); }}
+                    style={{marginTop:20}}>
+              הפוך (רווח)
+            </button>
+          )}
+
+          {quizMode === 'flashcard' && flipped && (
+            <div className="flip-in" style={{width:'100%', textAlign:'center'}}>
+              <div className="meaning-text" style={{marginBottom:6}}>{current.he}</div>
+              <div className="meaning-text ltr" style={{color:'var(--text2)', marginBottom:6}}>{current.en}</div>
+              <div className="ltr" style={{marginBottom:4}}>
+                {current.on.length > 0 && <span className="jp" style={{color:'var(--amber)'}}>音: {current.on.join('、')}</span>}
+              </div>
+              <div className="ltr" style={{marginBottom:8}}>
+                {current.kun.length > 0 && <span className="jp" style={{color:'var(--green)'}}>訓: {current.kun.join('、')}</span>}
+              </div>
+              {current.v && current.v[0] && (
+                <div style={{background:'var(--bg3)', borderRadius:8, padding:10, marginTop:8}}>
+                  <div className="jp ltr" style={{fontSize:18}}>{current.v[0].w}</div>
+                  <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{current.v[0].r}</div>
+                  <div style={{fontSize:13}}>{current.v[0].he}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {quizMode === 'mc' && (
+            <div style={{width:'100%', marginTop:12}}>
+              <div style={{fontSize:14, color:'var(--text2)', marginBottom:8, textAlign:'center'}}>מה המשמעות?</div>
+              {mcOptions.map(opt => {
+                let cls = 'mc-option';
+                if (mcAnswer) {
+                  if (opt.c === current.c) cls += ' correct';
+                  else if (opt.c === mcAnswer) cls += ' wrong';
+                }
+                return (
+                  <div key={opt.c} className={cls} onClick={() => handleMCSelect(opt)}>
+                    {opt.he} ({opt.en})
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {quizMode === 'typing' && (
+            <div style={{width:'100%', marginTop:12}}>
+              <div style={{fontSize:14, color:'var(--text2)', marginBottom:8, textAlign:'center'}}>הקלד את המשמעות באנגלית</div>
+              <form onSubmit={handleTypingSubmit}>
+                <input ref={inputRef} className="typing-input" value={typingVal}
+                       onChange={e => setTypingVal(e.target.value)} placeholder="Meaning in English..."
+                       disabled={typingResult !== null} autoFocus />
+                {typingResult === null && (
+                  <button type="submit" className="btn btn-primary btn-full" style={{marginTop:8}}>בדוק</button>
+                )}
+                {typingResult !== null && (
+                  <div style={{textAlign:'center', marginTop:12, fontSize:16, fontWeight:600,
+                               color: typingResult ? 'var(--green)' : 'var(--red)'}}>
+                    {typingResult ? 'נכון!' : `לא נכון. התשובה: ${current.en} (${current.he})`}
+                  </div>
+                )}
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* Rating buttons - show for flashcard after flip, or wait for MC/typing auto-advance */}
+        {quizMode === 'flashcard' && flipped && (
+          <div className="rating-btns">
+            {INTERVALS.map((iv, i) => (
+              <button key={i} className="rating-btn" onClick={() => handleRate(i)}
+                      style={{borderColor: i===0?'var(--red)':i===1?'var(--orange)':i===2?'var(--green)':'var(--blue)'}}>
+                <span>{iv.label}</span>
+                <span className="interval">{getIntervalText(curSrs.level, iv.delta)}</span>
+                <span style={{fontSize:10, color:'var(--text3)'}}>{i+1}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ======================== EXPLORE PAGE ========================
+function ExplorePage({selectedLevels, srsData}) {
+  const [activeTab, setActiveTab] = useState('N5');
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
+
+  const filtered = useMemo(() => {
+    let list = KANJI.filter(k => k.j === activeTab);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(k =>
+        k.c.includes(q) || k.en.toLowerCase().includes(q) || k.he.includes(q) ||
+        k.on.some(r => r.includes(q)) || k.kun.some(r => r.includes(q))
+      );
+    }
+    return list;
+  }, [activeTab, search]);
+
+  return (
+    <div className="page">
+      <div className="page-title">סייר קאנג'י</div>
+      <div className="tabs">
+        {['N5','N4','N3','N2','N1'].map(lv => (
+          <button key={lv} className={`tab ${activeTab === lv ? 'active' : ''}`}
+                  onClick={() => setActiveTab(lv)}>
+            {lv} ({KANJI.filter(k=>k.j===lv).length})
+          </button>
+        ))}
+      </div>
+      <input className="search-box" placeholder="חיפוש קאנג'י, משמעות, קריאה..."
+             value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="explorer-grid">
+        {filtered.map(k => {
+          const d = srsData[k.c];
+          const stage = getStage(d ? d.level : 0);
+          return (
+            <div key={k.c} className="explorer-cell" onClick={() => setSelected(k)}
+                 style={{borderColor: stage.color + '66'}}>
+              <span className="jp">{k.c}</span>
+              <span className="cell-sub">{k.he}</span>
+            </div>
+          );
+        })}
+      </div>
+      {filtered.length === 0 && <div style={{textAlign:'center', color:'var(--text3)', marginTop:20}}>לא נמצאו תוצאות</div>}
+
+      {selected && (
+        <div className="modal-overlay" onClick={() => setSelected(null)}>
+          <div className="modal scale-in" onClick={e => e.stopPropagation()}>
+            <div style={{textAlign:'center'}}>
+              <div className="jp" style={{fontSize:72, fontWeight:900}}>{selected.c}</div>
+              <div className="badge" style={{background:getStage((srsData[selected.c]||{level:0}).level).color+'33',
+                   color:getStage((srsData[selected.c]||{level:0}).level).color, marginBottom:12}}>
+                {getStage((srsData[selected.c]||{level:0}).level).name}
+              </div>
+              <div style={{fontSize:20, fontWeight:600, marginBottom:4}}>{selected.he}</div>
+              <div className="ltr" style={{fontSize:16, color:'var(--text2)', marginBottom:12}}>{selected.en}</div>
+              <div style={{display:'flex', justifyContent:'center', gap:20, marginBottom:12}}>
+                {selected.on.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11, color:'var(--text3)'}}>אוניומי</div>
+                    <div className="jp ltr" style={{color:'var(--amber)'}}>{selected.on.join('、')}</div>
+                  </div>
+                )}
+                {selected.kun.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11, color:'var(--text3)'}}>קוניומי</div>
+                    <div className="jp ltr" style={{color:'var(--green)'}}>{selected.kun.join('、')}</div>
+                  </div>
+                )}
+              </div>
+              <div style={{fontSize:13, color:'var(--text3)'}}>שבצים: {selected.s} | רמה: {selected.j}</div>
+              {selected.v && selected.v[0] && (
+                <div style={{background:'var(--bg3)', borderRadius:8, padding:12, marginTop:12}}>
+                  <div style={{fontSize:12, color:'var(--text3)', marginBottom:4}}>מילה לדוגמה</div>
+                  <div className="jp ltr" style={{fontSize:20}}>{selected.v[0].w}</div>
+                  <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{selected.v[0].r}</div>
+                  <div style={{fontSize:14}}>{selected.v[0].he} ({selected.v[0].en})</div>
+                </div>
+              )}
+              <button className="btn btn-secondary btn-full" style={{marginTop:16}} onClick={() => setSelected(null)}>סגור</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ======================== ADD / SETTINGS PAGE ========================
+function AddPage({selectedLevels, toggleLevel, stats, setStats, quizMode, setQuizMode}) {
+  const [goal, setGoal] = useState(stats.dailyGoal);
+
+  const applyGoal = () => {
+    const g = Math.max(1, Math.min(200, parseInt(goal) || 20));
+    setStats(s => ({...s, dailyGoal: g}));
+    setGoal(g);
+  };
+
+  return (
+    <div className="page">
+      <div className="page-title">הגדרות</div>
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:10}}>רמות פעילות</div>
+        <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+          {['N5','N4','N3','N2','N1'].map(lv => (
+            <button key={lv} className={`chip ${selectedLevels.includes(lv) ? 'selected' : ''}`}
+                    onClick={() => toggleLevel(lv)}>
+              {lv} ({KANJI.filter(k=>k.j===lv).length})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:10}}>מצב תרגול</div>
+        <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+          {[{k:'flashcard',l:'כרטיסיות'},{k:'mc',l:'רב-ברירה'},{k:'typing',l:'הקלדה'}].map(m => (
+            <button key={m.k} className={`chip ${quizMode === m.k ? 'selected' : ''}`}
+                    onClick={() => setQuizMode(m.k)}>{m.l}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:10}}>יעד יומי</div>
+        <div style={{display:'flex', gap:8, alignItems:'center'}}>
+          <input type="number" value={goal} onChange={e => setGoal(e.target.value)}
+                 style={{width:80, padding:'8px 12px', borderRadius:8, border:'1px solid var(--bg3)',
+                         background:'var(--bg)', color:'var(--text)', fontSize:16, textAlign:'center'}} />
+          <span style={{fontSize:14, color:'var(--text2)'}}>חזרות ביום</span>
+          <button className="btn btn-sm btn-primary" onClick={applyGoal}>שמור</button>
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:10, color:'var(--red)'}}>איפוס</div>
+        <button className="btn btn-sm btn-secondary" onClick={() => {
+          if (confirm('לאפס את כל ההתקדמות?')) {
+            localStorage.clear();
+            location.reload();
+          }
+        }}>
+          איפוס כל הנתונים
+        </button>
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:10}}>קיצורי מקלדת</div>
+        <div style={{fontSize:13, color:'var(--text2)'}}>
+          <div style={{marginBottom:4}}>רווח — הפוך כרטיס</div>
+          <div style={{marginBottom:4}}>1 — שוב (Again)</div>
+          <div style={{marginBottom:4}}>2 — קשה (Hard)</div>
+          <div style={{marginBottom:4}}>3 — טוב (Good)</div>
+          <div>4 — קל (Easy)</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================== STATS PAGE ========================
+function StatsPage({stats, srsData}) {
+  const allEntries = Object.entries(srsData);
+  const totalLearned = allEntries.filter(([,d]) => d.level >= 1).length;
+  const mastered = allEntries.filter(([,d]) => d.level >= 7).length;
+  const burned = allEntries.filter(([,d]) => d.level >= 9).length;
+
+  const stageDistribution = {};
+  SRS_STAGES.forEach(s => stageDistribution[s.nameEn] = 0);
+  allEntries.forEach(([,d]) => {
+    const stage = getStage(d.level);
+    stageDistribution[stage.nameEn]++;
+  });
+  // Add unseen
+  stageDistribution['New'] = KANJI.length - allEntries.length + (stageDistribution['New'] || 0);
+
+  const maxBar = Math.max(1, ...Object.values(stageDistribution));
+
+  return (
+    <div className="page">
+      <div className="page-title">סטטיסטיקה</div>
+
+      <div className="card card-glow" style={{textAlign:'center'}}>
+        <div style={{fontSize:48, fontWeight:900, color:'var(--amber)'}}>{stats.totalXP}</div>
+        <div style={{fontSize:14, color:'var(--text2)'}}>XP כולל</div>
+      </div>
+
+      <div className="card">
+        <div className="stat-row">
+          <span className="stat-label">סה"כ חזרות</span>
+          <span className="stat-value">{stats.totalReviews}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">נלמדו</span>
+          <span className="stat-value">{totalLearned}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">שולטו (מאסטר+)</span>
+          <span className="stat-value">{mastered}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">נצרבו</span>
+          <span className="stat-value" style={{color:'var(--amber)'}}>{burned}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">רצף ימים</span>
+          <span className="stat-value">{stats.streak}</span>
+        </div>
+        <div className="stat-row">
+          <span className="stat-label">יעד יומי</span>
+          <span className="stat-value">{stats.dailyDone}/{stats.dailyGoal}</span>
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:12}}>התפלגות שלבים</div>
+        {SRS_STAGES.map(s => (
+          <div key={s.nameEn} style={{marginBottom:8}}>
+            <div style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4}}>
+              <span style={{color:s.color}}>{s.name}</span>
+              <span style={{fontWeight:600}}>{stageDistribution[s.nameEn]}</span>
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{width:`${(stageDistribution[s.nameEn]/maxBar)*100}%`, background:s.color}} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        <div style={{fontWeight:600, marginBottom:8}}>התקדמות לפי רמה</div>
+        {['N5','N4','N3','N2','N1'].map(lv => {
+          const total = KANJI.filter(k => k.j === lv).length;
+          const learned = KANJI.filter(k => k.j === lv && srsData[k.c] && srsData[k.c].level >= 1).length;
+          return (
+            <div key={lv} style={{marginBottom:8}}>
+              <div style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4}}>
+                <span>{lv}</span>
+                <span>{learned}/{total}</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width:`${(learned/total)*100}%`, background:'var(--amber)'}} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ======================== NAV BAR ========================
+function NavBar({tab, setTab}) {
+  const items = [
+    {id:'home', icon:'🏠', label:'ראשי'},
+    {id:'study', icon:'📖', label:'לימוד'},
+    {id:'explore', icon:'漢', label:'קאנג\'י'},
+    {id:'add', icon:'⚙️', label:'הגדרות'},
+    {id:'stats', icon:'📊', label:'סטטיסטיקה'},
+  ];
+  return (
+    <div className="nav-bar">
+      {items.map(it => (
+        <button key={it.id} className={`nav-btn ${tab === it.id ? 'active' : ''}`}
+                onClick={() => setTab(it.id)}>
+          <span className="nav-icon">{it.icon}</span>
+          <span>{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
