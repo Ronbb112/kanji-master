@@ -111,10 +111,27 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
   aspect-ratio: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; border-radius: 10px;
   background: var(--bg2); border: 1px solid var(--bg3); cursor: pointer;
-  transition: all 0.2s; font-size: 28px;
+  transition: all 0.2s; font-size: 26px; padding: 4px 2px; gap: 1px;
+  position: relative; overflow: hidden;
 }
 .explorer-cell:hover { border-color: var(--amber); transform: scale(1.05); }
-.explorer-cell .cell-sub { font-size: 9px; color: var(--text3); }
+.explorer-cell .cell-reading { font-size: 8px; color: var(--amber); opacity: 0.8; font-family: 'Noto Sans JP', sans-serif; direction: ltr; }
+.explorer-cell .cell-sub { font-size: 8px; color: var(--text3); line-height: 1; }
+.explorer-cell .cell-stage-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; }
+
+.quiz-setup { text-align: center; padding: 20px 0; }
+.quiz-setup-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+.size-options { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+.size-option {
+  padding: 12px 20px; border-radius: 12px; border: 2px solid var(--bg3);
+  background: var(--bg2); cursor: pointer; transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 70px;
+}
+.size-option:hover { border-color: var(--amber); }
+.size-option.selected { border-color: var(--amber); background: rgba(240,168,48,0.15); }
+.size-option .size-num { font-size: 22px; font-weight: 700; color: var(--amber); }
+.size-option .size-label { font-size: 11px; color: var(--text2); }
 
 .tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
 .tab {
@@ -699,6 +716,9 @@ function HomePage({stats, filteredKanji, srsData, selectedLevels, toggleLevel, s
 
 // ======================== STUDY PAGE ========================
 function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQuizMode, doSound, sessionActive, setSessionActive, lastAction, setLastAction}) {
+  const [phase, setPhase] = useState('setup'); // 'setup' | 'active' | 'done'
+  const [quizSize, setQuizSize] = useState(() => loadData('quizSize', 20));
+  const [studyFilter, setStudyFilter] = useState('due'); // 'due' | 'new' | 'weak' | 'all'
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [combo, setCombo] = useState(0);
@@ -707,18 +727,134 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
   const [mcAnswer, setMcAnswer] = useState(null);
   const [typingVal, setTypingVal] = useState('');
   const [typingResult, setTypingResult] = useState(null);
+  const [sessionStats, setSessionStats] = useState({correct:0, wrong:0, xp:0});
   const inputRef = useRef(null);
 
-  const dueKanji = useMemo(() => {
+  const allDue = useMemo(() => {
     const now = new Date();
     return kanji.filter(k => {
       const d = srsData[k.c];
       if (!d) return true;
       return !d.nextReview || new Date(d.nextReview) <= now;
-    }).sort(() => Math.random() - 0.5);
+    });
   }, [kanji, srsData]);
 
-  const current = dueKanji[currentIndex];
+  const newKanji = useMemo(() => kanji.filter(k => !srsData[k.c] || srsData[k.c].level === 0), [kanji, srsData]);
+  const weakKanji = useMemo(() => kanji.filter(k => {
+    const d = srsData[k.c];
+    return d && d.level >= 1 && d.level <= 3;
+  }), [kanji, srsData]);
+
+  const dueKanji = useMemo(() => {
+    let pool;
+    if (studyFilter === 'new') pool = newKanji;
+    else if (studyFilter === 'weak') pool = weakKanji;
+    else if (studyFilter === 'all') pool = kanji;
+    else pool = allDue;
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return quizSize === 0 ? shuffled : shuffled.slice(0, quizSize);
+  }, [studyFilter, quizSize, allDue, newKanji, weakKanji, kanji]);
+
+  const current = phase === 'active' ? dueKanji[currentIndex] : null;
+
+  // Setup screen
+  if (phase === 'setup') {
+    const sizes = [
+      {n: 5, l: 'מהיר'},
+      {n: 10, l: 'קצר'},
+      {n: 20, l: 'רגיל'},
+      {n: 30, l: 'ארוך'},
+      {n: 50, l: 'מרתון'},
+      {n: 0, l: 'הכל'},
+    ];
+    const filters = [
+      {k:'due', l:'ממתינים', count: allDue.length, icon:'⏰'},
+      {k:'new', l:'חדשים', count: newKanji.length, icon:'🆕'},
+      {k:'weak', l:'חלשים', count: weakKanji.length, icon:'💪'},
+      {k:'all', l:'הכל', count: kanji.length, icon:'📚'},
+    ];
+    const effectiveCount = studyFilter === 'new' ? newKanji.length :
+                           studyFilter === 'weak' ? weakKanji.length :
+                           studyFilter === 'all' ? kanji.length : allDue.length;
+    const actualSize = quizSize === 0 ? effectiveCount : Math.min(quizSize, effectiveCount);
+    return (
+      <div className="page quiz-setup">
+        <div className="quiz-setup-title">⚙️ הגדרות מבחן</div>
+
+        <div className="card" style={{textAlign:'right'}}>
+          <div style={{fontWeight:600, marginBottom:10}}>מה לתרגל?</div>
+          <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+            {filters.map(f => (
+              <button key={f.k} className={`chip ${studyFilter === f.k ? 'selected' : ''}`}
+                      onClick={() => setStudyFilter(f.k)}>
+                {f.icon} {f.l} ({f.count})
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="card" style={{textAlign:'right'}}>
+          <div style={{fontWeight:600, marginBottom:10}}>כמה קאנג'י?</div>
+          <div className="size-options">
+            {sizes.map(s => (
+              <div key={s.n} className={`size-option ${quizSize === s.n ? 'selected' : ''}`}
+                   onClick={() => { setQuizSize(s.n); saveData('quizSize', s.n); }}>
+                <span className="size-num">{s.n === 0 ? '∞' : s.n}</span>
+                <span className="size-label">{s.l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card" style={{textAlign:'right'}}>
+          <div style={{fontWeight:600, marginBottom:10}}>מצב מבחן</div>
+          <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+            {[{k:'flashcard',l:'🃏 כרטיסיות'},{k:'mc',l:'📝 רב-ברירה'},{k:'typing',l:'⌨️ הקלדה'}].map(m => (
+              <button key={m.k} className={`chip ${quizMode === m.k ? 'selected' : ''}`}
+                      onClick={() => { setQuizMode(m.k); saveData('quizMode', m.k); }}>{m.l}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{marginTop:20, padding:'16px', background:'var(--bg2)', borderRadius:12, border:'1px solid var(--bg3)'}}>
+          <div style={{fontSize:36, fontWeight:900, color:'var(--amber)'}}>{actualSize}</div>
+          <div style={{fontSize:14, color:'var(--text2)'}}>קאנג'י בסשן הזה</div>
+        </div>
+
+        <button className="btn btn-primary btn-full" style={{fontSize:18, padding:16, marginTop:16}}
+                disabled={actualSize === 0}
+                onClick={() => { setPhase('active'); setCurrentIndex(0); setCombo(0); setSessionStats({correct:0,wrong:0,xp:0}); }}>
+          🚀 התחל מבחן
+        </button>
+      </div>
+    );
+  }
+
+  // Done screen
+  if (phase === 'done') {
+    const total = sessionStats.correct + sessionStats.wrong;
+    const accuracy = total > 0 ? Math.round((sessionStats.correct / total) * 100) : 0;
+    return (
+      <div className="page" style={{textAlign:'center', paddingTop:40}}>
+        <div style={{fontSize:64, marginBottom:16}}>🎉</div>
+        <div style={{fontSize:24, fontWeight:700, marginBottom:20}}>סיימת!</div>
+        <div className="card" style={{textAlign:'center'}}>
+          <div style={{display:'flex', justifyContent:'space-around', marginBottom:16}}>
+            <div><div style={{fontSize:28, fontWeight:700, color:'var(--green)'}}>{sessionStats.correct}</div><div style={{fontSize:12, color:'var(--text2)'}}>נכון</div></div>
+            <div><div style={{fontSize:28, fontWeight:700, color:'var(--red)'}}>{sessionStats.wrong}</div><div style={{fontSize:12, color:'var(--text2)'}}>שגוי</div></div>
+            <div><div style={{fontSize:28, fontWeight:700, color:'var(--amber)'}}>{sessionStats.xp}</div><div style={{fontSize:12, color:'var(--text2)'}}>XP</div></div>
+          </div>
+          <div className="progress-bar" style={{height:8, marginBottom:8}}>
+            <div className="progress-fill" style={{width:`${accuracy}%`, background: accuracy >= 80 ? 'var(--green)' : accuracy >= 50 ? 'var(--orange)' : 'var(--red)'}} />
+          </div>
+          <div style={{fontSize:14, color:'var(--text2)'}}>{accuracy}% דיוק</div>
+        </div>
+        <div style={{display:'flex', gap:8, marginTop:16}}>
+          <button className="btn btn-secondary btn-full" onClick={() => setPhase('setup')}>🔄 מבחן חדש</button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!sessionActive && dueKanji.length > 0) setSessionActive(true);
@@ -808,10 +944,20 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
       streak: s.lastDate === today ? s.streak : (s.streak + 1),
     }));
 
-    // Next card
+    // Track session
+    setSessionStats(ss => ({
+      ...ss,
+      correct: isGood ? ss.correct + 1 : ss.correct,
+      wrong: !isGood ? ss.wrong + 1 : ss.wrong,
+      xp: ss.xp + earnedXP,
+    }));
+
+    // Next card or done
     setFlipped(false);
     if (currentIndex < dueKanji.length - 1) {
       setCurrentIndex(i => i + 1);
+    } else {
+      setTimeout(() => { setPhase('done'); setSessionActive(false); }, 300);
     }
   };
 
@@ -862,12 +1008,17 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
   };
 
   if (!current || dueKanji.length === 0) {
+    if (phase === 'active' && (sessionStats.correct + sessionStats.wrong) > 0) {
+      setPhase('done');
+      setSessionActive(false);
+      return null;
+    }
     return (
       <div className="page" style={{textAlign:'center', paddingTop:60}}>
-        <div style={{fontSize:64, marginBottom:20}}>🎉</div>
-        <div style={{fontSize:22, fontWeight:700, marginBottom:8}}>כל הכבוד!</div>
-        <div style={{color:'var(--text2)', marginBottom:20}}>סיימת את כל החזרות. חזור מאוחר יותר.</div>
-        <div style={{fontSize:14, color:'var(--text3)'}}>XP שנצבר: {stats.totalXP}</div>
+        <div style={{fontSize:64, marginBottom:20}}>✅</div>
+        <div style={{fontSize:22, fontWeight:700, marginBottom:8}}>אין קאנג'י זמינים!</div>
+        <div style={{color:'var(--text2)', marginBottom:20}}>שנה את הסינון או חזור מאוחר יותר.</div>
+        <button className="btn btn-primary" onClick={() => setPhase('setup')}>חזור להגדרות</button>
       </div>
     );
   }
@@ -877,20 +1028,17 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
 
   return (
     <div className="page">
-      {/* Mode selector */}
-      <div style={{display:'flex', gap:6, marginBottom:12}}>
-        {[{k:'flashcard',l:'כרטיס'},{k:'mc',l:'רב-ברירה'},{k:'typing',l:'הקלדה'}].map(m => (
-          <button key={m.k} className={`tab ${quizMode === m.k ? 'active' : ''}`}
-                  onClick={() => { setQuizMode(m.k); saveData('quizMode', m.k); setFlipped(false); }}>
-            {m.l}
-          </button>
-        ))}
-      </div>
-
-      {/* Progress */}
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, fontSize:13, color:'var(--text2)'}}>
-        <span>{currentIndex + 1} / {dueKanji.length}</span>
-        {lastAction && <button onClick={handleUndo} style={{color:'var(--amber)', fontSize:12, fontWeight:600}}>↩ בטל</button>}
+      {/* Top bar with back, progress, undo */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
+        <button onClick={() => { setPhase('setup'); setSessionActive(false); }}
+                style={{fontSize:13, color:'var(--text2)', display:'flex', alignItems:'center', gap:4}}>
+          ← חזור
+        </button>
+        <span style={{fontSize:13, color:'var(--text2)'}}>{currentIndex + 1} / {dueKanji.length}</span>
+        <div style={{display:'flex', gap:8, alignItems:'center'}}>
+          {combo > 2 && <span style={{fontSize:12, color:'var(--amber)', fontWeight:700}}>x{combo}</span>}
+          {lastAction && <button onClick={handleUndo} style={{color:'var(--amber)', fontSize:12, fontWeight:600}}>↩ בטל</button>}
+        </div>
       </div>
       <div className="progress-bar" style={{marginBottom:12}}>
         <div className="progress-fill" style={{width:`${(currentIndex/dueKanji.length)*100}%`, background:'var(--amber)'}} />
@@ -1024,10 +1172,13 @@ function ExplorePage({selectedLevels, srsData}) {
         {filtered.map(k => {
           const d = srsData[k.c];
           const stage = getStage(d ? d.level : 0);
+          const mainReading = k.kun.length > 0 ? k.kun[0].replace('.','') : (k.on.length > 0 ? k.on[0] : '');
           return (
             <div key={k.c} className="explorer-cell" onClick={() => setSelected(k)}
                  style={{borderColor: stage.color + '66'}}>
-              <span className="jp">{k.c}</span>
+              {d && d.level > 0 && <div className="cell-stage-dot" style={{background: stage.color}} />}
+              <span className="cell-reading">{mainReading}</span>
+              <span className="jp" style={{lineHeight:1}}>{k.c}</span>
               <span className="cell-sub">{k.he}</span>
             </div>
           );
