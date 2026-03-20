@@ -686,7 +686,10 @@ function App() {
       {tab === 'add' && <AddPage selectedLevels={selectedLevels} toggleLevel={toggleLevel}
                                   stats={stats} setStats={setStats} quizMode={quizMode} setQuizMode={setQuizMode} />}
       {tab === 'stats' && <StatsPage stats={stats} srsData={srsData} />}
-      <NavBar tab={tab} setTab={setTab} />
+      <NavBar tab={tab} setTab={(t) => {
+        if (t !== 'study') { setSessionActive(false); setSessionTime(0); }
+        setTab(t);
+      }} />
     </div>
   );
 }
