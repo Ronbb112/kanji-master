@@ -2,12 +2,17 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>漢字マスター — Kanji Master</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Noto+Sans+Hebrew:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;900&family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet" />
+<meta name="theme-color" content="#0f0f14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -212,6 +217,53 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
   position: absolute; top: 12px; left: 12px; color: var(--text3);
   font-size: 12px; font-weight: 600;
 }
+
+/* === MOBILE OPTIMIZATIONS === */
+html { touch-action: manipulation; }
+* { -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; min-height: 100dvh; }
+body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+.nav-btn { min-height: 48px; }
+.rating-btn { min-height: 48px; }
+.chip { min-height: 44px; padding: 10px 14px; }
+.tab { min-height: 44px; padding: 10px 14px; }
+.btn:active { transform: scale(0.96); }
+.rating-btn:active { transform: scale(0.95); background: var(--bg4); }
+.chip:active { transform: scale(0.95); }
+.mc-option:active { transform: scale(0.98); background: var(--bg3); }
+.explorer-cell:active { transform: scale(0.95); }
+.nav-btn:active { opacity: 0.7; }
+button, .nav-bar, .chip, .tab, .rating-btn, .mc-option, .explorer-cell, .badge, .toggle-switch {
+  user-select: none; -webkit-user-select: none;
+}
+.search-box { font-size: 16px; }
+#root { padding-top: env(safe-area-inset-top, 0px); }
+.nav-btn.active { position: relative; }
+.nav-btn.active::before {
+  content: ''; position: absolute; top: 0; left: 25%; right: 25%;
+  height: 2px; background: var(--amber); border-radius: 1px;
+}
+.modal-overlay { align-items: flex-end; }
+.modal { border-radius: 16px 16px 0 0; border-bottom: none; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.study-card { contain: layout style; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .study-card { min-height: 260px; }
+  .kanji-large { font-size: 56px; }
+  .page { padding: 8px 16px; }
+}
+
+.heatmap-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
+.heatmap-cell { aspect-ratio: 1; border-radius: 3px; position: relative; }
+.heatmap-cell:hover .heatmap-tooltip { display: block; }
+.heatmap-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--bg2); border: 1px solid var(--bg3); border-radius: 6px; padding: 4px 8px; font-size: 10px; white-space: nowrap; z-index: 10; }
+.forecast-bar { display: flex; gap: 4px; margin-top: 8px; }
+.forecast-item { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; background: var(--bg2); border: 1px solid var(--bg3); }
+.forecast-num { font-size: 18px; font-weight: 700; color: var(--amber); }
+.forecast-label { font-size: 10px; color: var(--text2); }
+.session-review-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg3); }
+.speaker-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; }
+.speaker-btn:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
@@ -222,88 +274,88 @@ const {useState, useEffect, useRef, useCallback, useMemo} = React;
 // ======================== KANJI DATABASE ========================
 const KANJI_DB = [
 // N5 - 80 kanji
-{c:'一',en:'one',he:'אחד',on:['イチ','イツ'],kun:['ひと.つ'],s:1,j:'N5',v:[{w:'一つ',r:'ひとつ',en:'one thing',he:'דבר אחד'}]},
-{c:'二',en:'two',he:'שניים',on:['ニ'],kun:['ふた.つ'],s:2,j:'N5',v:[{w:'二つ',r:'ふたつ',en:'two things',he:'שני דברים'}]},
-{c:'三',en:'three',he:'שלושה',on:['サン'],kun:['みっ.つ'],s:3,j:'N5',v:[{w:'三つ',r:'みっつ',en:'three things',he:'שלושה דברים'}]},
-{c:'四',en:'four',he:'ארבעה',on:['シ'],kun:['よ.つ','よん'],s:5,j:'N5',v:[{w:'四つ',r:'よっつ',en:'four things',he:'ארבעה דברים'}]},
-{c:'五',en:'five',he:'חמישה',on:['ゴ'],kun:['いつ.つ'],s:4,j:'N5',v:[{w:'五つ',r:'いつつ',en:'five things',he:'חמישה דברים'}]},
-{c:'六',en:'six',he:'שישה',on:['ロク'],kun:['む.つ'],s:4,j:'N5',v:[{w:'六つ',r:'むっつ',en:'six things',he:'שישה דברים'}]},
-{c:'七',en:'seven',he:'שבעה',on:['シチ'],kun:['なな.つ'],s:2,j:'N5',v:[{w:'七つ',r:'ななつ',en:'seven things',he:'שבעה דברים'}]},
-{c:'八',en:'eight',he:'שמונה',on:['ハチ'],kun:['や.つ'],s:2,j:'N5',v:[{w:'八つ',r:'やっつ',en:'eight things',he:'שמונה דברים'}]},
-{c:'九',en:'nine',he:'תשעה',on:['キュウ','ク'],kun:['ここの.つ'],s:2,j:'N5',v:[{w:'九つ',r:'ここのつ',en:'nine things',he:'תשעה דברים'}]},
-{c:'十',en:'ten',he:'עשר',on:['ジュウ'],kun:['とお'],s:2,j:'N5',v:[{w:'十',r:'じゅう',en:'ten',he:'עשר'}]},
-{c:'百',en:'hundred',he:'מאה',on:['ヒャク'],kun:[],s:6,j:'N5',v:[{w:'百',r:'ひゃく',en:'hundred',he:'מאה'}]},
-{c:'千',en:'thousand',he:'אלף',on:['セン'],kun:['ち'],s:3,j:'N5',v:[{w:'千',r:'せん',en:'thousand',he:'אלף'}]},
-{c:'万',en:'ten thousand',he:'עשרת אלפים',on:['マン','バン'],kun:[],s:3,j:'N5',v:[{w:'一万',r:'いちまん',en:'ten thousand',he:'עשרת אלפים'}]},
-{c:'円',en:'circle/yen',he:'יֵן/עיגול',on:['エン'],kun:['まる.い'],s:4,j:'N5',v:[{w:'百円',r:'ひゃくえん',en:'100 yen',he:'מאה יֵן'}]},
-{c:'時',en:'time/hour',he:'שעה/זמן',on:['ジ'],kun:['とき'],s:10,j:'N5',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
-{c:'日',en:'day/sun',he:'יום/שמש',on:['ニチ','ジツ'],kun:['ひ','か'],s:4,j:'N5',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
-{c:'月',en:'month/moon',he:'חודש/ירח',on:['ゲツ','ガツ'],kun:['つき'],s:4,j:'N5',v:[{w:'一月',r:'いちがつ',en:'January',he:'ינואר'}]},
-{c:'火',en:'fire',he:'אש',on:['カ'],kun:['ひ'],s:4,j:'N5',v:[{w:'火曜日',r:'かようび',en:'Tuesday',he:'יום שלישי'}]},
-{c:'水',en:'water',he:'מים',on:['スイ'],kun:['みず'],s:4,j:'N5',v:[{w:'水曜日',r:'すいようび',en:'Wednesday',he:'יום רביעי'}]},
-{c:'木',en:'tree/wood',he:'עץ',on:['モク','ボク'],kun:['き'],s:4,j:'N5',v:[{w:'木曜日',r:'もくようび',en:'Thursday',he:'יום חמישי'}]},
-{c:'金',en:'gold/money',he:'זהב/כסף',on:['キン','コン'],kun:['かね'],s:8,j:'N5',v:[{w:'お金',r:'おかね',en:'money',he:'כסף'}]},
-{c:'土',en:'earth/soil',he:'אדמה',on:['ド','ト'],kun:['つち'],s:3,j:'N5',v:[{w:'土曜日',r:'どようび',en:'Saturday',he:'יום שבת'}]},
-{c:'曜',en:'day of week',he:'יום בשבוע',on:['ヨウ'],kun:[],s:18,j:'N5',v:[{w:'曜日',r:'ようび',en:'day of week',he:'יום בשבוע'}]},
-{c:'年',en:'year',he:'שנה',on:['ネン'],kun:['とし'],s:6,j:'N5',v:[{w:'今年',r:'ことし',en:'this year',he:'השנה'}]},
-{c:'人',en:'person',he:'אדם',on:['ジン','ニン'],kun:['ひと'],s:2,j:'N5',v:[{w:'日本人',r:'にほんじん',en:'Japanese person',he:'יפני'}]},
-{c:'女',en:'woman',he:'אישה',on:['ジョ'],kun:['おんな'],s:3,j:'N5',v:[{w:'女の人',r:'おんなのひと',en:'woman',he:'אישה'}]},
-{c:'男',en:'man',he:'גבר',on:['ダン','ナン'],kun:['おとこ'],s:7,j:'N5',v:[{w:'男の人',r:'おとこのひと',en:'man',he:'גבר'}]},
-{c:'子',en:'child',he:'ילד',on:['シ','ス'],kun:['こ'],s:3,j:'N5',v:[{w:'子供',r:'こども',en:'child',he:'ילד'}]},
-{c:'学',en:'study',he:'ללמוד',on:['ガク'],kun:['まな.ぶ'],s:8,j:'N5',v:[{w:'学生',r:'がくせい',en:'student',he:'תלמיד'}]},
-{c:'生',en:'life/birth',he:'חיים/לידה',on:['セイ','ショウ'],kun:['い.きる','う.まれる'],s:5,j:'N5',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
-{c:'先',en:'previous/ahead',he:'קודם/לפני',on:['セン'],kun:['さき'],s:6,j:'N5',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
-{c:'何',en:'what',he:'מה',on:['カ'],kun:['なに','なん'],s:7,j:'N5',v:[{w:'何時',r:'なんじ',en:'what time',he:'מתי'}]},
-{c:'上',en:'up/above',he:'למעלה',on:['ジョウ'],kun:['うえ','あ.がる'],s:3,j:'N5',v:[{w:'上手',r:'じょうず',en:'skillful',he:'מיומן'}]},
-{c:'下',en:'down/below',he:'למטה',on:['カ','ゲ'],kun:['した','さ.がる'],s:3,j:'N5',v:[{w:'下手',r:'へた',en:'unskillful',he:'לא מיומן'}]},
-{c:'中',en:'middle/inside',he:'אמצע/פנים',on:['チュウ'],kun:['なか'],s:4,j:'N5',v:[{w:'中国',r:'ちゅうごく',en:'China',he:'סין'}]},
-{c:'大',en:'big',he:'גדול',on:['ダイ','タイ'],kun:['おお.きい'],s:3,j:'N5',v:[{w:'大きい',r:'おおきい',en:'big',he:'גדול'}]},
-{c:'小',en:'small',he:'קטן',on:['ショウ'],kun:['ちい.さい','こ'],s:3,j:'N5',v:[{w:'小さい',r:'ちいさい',en:'small',he:'קטן'}]},
-{c:'高',en:'tall/expensive',he:'גבוה/יקר',on:['コウ'],kun:['たか.い'],s:10,j:'N5',v:[{w:'高い',r:'たかい',en:'expensive',he:'יקר'}]},
-{c:'安',en:'cheap/safe',he:'זול/בטוח',on:['アン'],kun:['やす.い'],s:6,j:'N5',v:[{w:'安い',r:'やすい',en:'cheap',he:'זול'}]},
-{c:'新',en:'new',he:'חדש',on:['シン'],kun:['あたら.しい'],s:13,j:'N5',v:[{w:'新しい',r:'あたらしい',en:'new',he:'חדש'}]},
-{c:'古',en:'old',he:'ישן',on:['コ'],kun:['ふる.い'],s:5,j:'N5',v:[{w:'古い',r:'ふるい',en:'old',he:'ישן'}]},
-{c:'長',en:'long/chief',he:'ארוך/ראש',on:['チョウ'],kun:['なが.い'],s:8,j:'N5',v:[{w:'長い',r:'ながい',en:'long',he:'ארוך'}]},
-{c:'短',en:'short',he:'קצר',on:['タン'],kun:['みじか.い'],s:12,j:'N5',v:[{w:'短い',r:'みじかい',en:'short',he:'קצר'}]},
-{c:'白',en:'white',he:'לבן',on:['ハク','ビャク'],kun:['しろ.い'],s:5,j:'N5',v:[{w:'白い',r:'しろい',en:'white',he:'לבן'}]},
-{c:'間',en:'interval/between',he:'מרווח/בין',on:['カン','ケン'],kun:['あいだ','ま'],s:12,j:'N5',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
-{c:'食',en:'eat/food',he:'לאכול/אוכל',on:['ショク'],kun:['た.べる'],s:9,j:'N5',v:[{w:'食べる',r:'たべる',en:'to eat',he:'לאכול'}]},
-{c:'飲',en:'drink',he:'לשתות',on:['イン'],kun:['の.む'],s:12,j:'N5',v:[{w:'飲む',r:'のむ',en:'to drink',he:'לשתות'}]},
-{c:'見',en:'see/look',he:'לראות',on:['ケン'],kun:['み.る'],s:7,j:'N5',v:[{w:'見る',r:'みる',en:'to see',he:'לראות'}]},
-{c:'聞',en:'hear/ask',he:'לשמוע',on:['ブン','モン'],kun:['き.く'],s:14,j:'N5',v:[{w:'聞く',r:'きく',en:'to hear',he:'לשמוע'}]},
-{c:'読',en:'read',he:'לקרוא',on:['ドク','トク'],kun:['よ.む'],s:14,j:'N5',v:[{w:'読む',r:'よむ',en:'to read',he:'לקרוא'}]},
-{c:'書',en:'write',he:'לכתוב',on:['ショ'],kun:['か.く'],s:10,j:'N5',v:[{w:'書く',r:'かく',en:'to write',he:'לכתוב'}]},
-{c:'話',en:'talk/story',he:'לדבר/סיפור',on:['ワ'],kun:['はな.す','はなし'],s:13,j:'N5',v:[{w:'電話',r:'でんわ',en:'telephone',he:'טלפון'}]},
-{c:'語',en:'language/word',he:'שפה/מילה',on:['ゴ'],kun:['かた.る'],s:14,j:'N5',v:[{w:'日本語',r:'にほんご',en:'Japanese',he:'יפנית'}]},
-{c:'言',en:'say',he:'לומר',on:['ゲン','ゴン'],kun:['い.う','こと'],s:7,j:'N5',v:[{w:'言う',r:'いう',en:'to say',he:'לומר'}]},
-{c:'行',en:'go/row',he:'ללכת/שורה',on:['コウ','ギョウ'],kun:['い.く','おこな.う'],s:6,j:'N5',v:[{w:'行く',r:'いく',en:'to go',he:'ללכת'}]},
-{c:'来',en:'come',he:'לבוא',on:['ライ'],kun:['く.る'],s:7,j:'N5',v:[{w:'来る',r:'くる',en:'to come',he:'לבוא'}]},
-{c:'出',en:'exit/put out',he:'לצאת',on:['シュツ'],kun:['で.る','だ.す'],s:5,j:'N5',v:[{w:'出る',r:'でる',en:'to exit',he:'לצאת'}]},
-{c:'入',en:'enter',he:'להיכנס',on:['ニュウ'],kun:['い.る','はい.る'],s:2,j:'N5',v:[{w:'入る',r:'はいる',en:'to enter',he:'להיכנס'}]},
-{c:'休',en:'rest',he:'לנוח',on:['キュウ'],kun:['やす.む'],s:6,j:'N5',v:[{w:'休む',r:'やすむ',en:'to rest',he:'לנוח'}]},
-{c:'立',en:'stand',he:'לעמוד',on:['リツ'],kun:['た.つ'],s:5,j:'N5',v:[{w:'立つ',r:'たつ',en:'to stand',he:'לעמוד'}]},
-{c:'前',en:'before/front',he:'לפני/קדימה',on:['ゼン'],kun:['まえ'],s:9,j:'N5',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
-{c:'後',en:'after/behind',he:'אחרי/מאחור',on:['ゴ','コウ'],kun:['うし.ろ','あと'],s:9,j:'N5',v:[{w:'午後',r:'ごご',en:'afternoon',he:'אחר הצהריים'}]},
-{c:'左',en:'left',he:'שמאל',on:['サ'],kun:['ひだり'],s:5,j:'N5',v:[{w:'左',r:'ひだり',en:'left',he:'שמאל'}]},
-{c:'右',en:'right',he:'ימין',on:['ウ','ユウ'],kun:['みぎ'],s:5,j:'N5',v:[{w:'右',r:'みぎ',en:'right',he:'ימין'}]},
-{c:'北',en:'north',he:'צפון',on:['ホク'],kun:['きた'],s:5,j:'N5',v:[{w:'北',r:'きた',en:'north',he:'צפון'}]},
-{c:'南',en:'south',he:'דרום',on:['ナン'],kun:['みなみ'],s:9,j:'N5',v:[{w:'南',r:'みなみ',en:'south',he:'דרום'}]},
-{c:'東',en:'east',he:'מזרח',on:['トウ'],kun:['ひがし'],s:8,j:'N5',v:[{w:'東京',r:'とうきょう',en:'Tokyo',he:'טוקיו'}]},
-{c:'西',en:'west',he:'מערב',on:['セイ','サイ'],kun:['にし'],s:6,j:'N5',v:[{w:'西',r:'にし',en:'west',he:'מערב'}]},
-{c:'外',en:'outside',he:'בחוץ',on:['ガイ','ゲ'],kun:['そと','ほか'],s:5,j:'N5',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
-{c:'国',en:'country',he:'מדינה',on:['コク'],kun:['くに'],s:8,j:'N5',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
-{c:'名',en:'name',he:'שם',on:['メイ','ミョウ'],kun:['な'],s:6,j:'N5',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
-{c:'電',en:'electricity',he:'חשמל',on:['デン'],kun:[],s:13,j:'N5',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
-{c:'車',en:'car/vehicle',he:'מכונית/רכב',on:['シャ'],kun:['くるま'],s:7,j:'N5',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
-{c:'天',en:'heaven/sky',he:'שמיים',on:['テン'],kun:['あめ','あま'],s:4,j:'N5',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
-{c:'気',en:'spirit/air',he:'רוח/אוויר',on:['キ','ケ'],kun:[],s:6,j:'N5',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
-{c:'雨',en:'rain',he:'גשם',on:['ウ'],kun:['あめ'],s:8,j:'N5',v:[{w:'雨',r:'あめ',en:'rain',he:'גשם'}]},
-{c:'本',en:'book/origin',he:'ספר/מקור',on:['ホン'],kun:['もと'],s:5,j:'N5',v:[{w:'日本',r:'にほん',en:'Japan',he:'יפן'}]},
-{c:'友',en:'friend',he:'חבר',on:['ユウ'],kun:['とも'],s:4,j:'N5',v:[{w:'友達',r:'ともだち',en:'friend',he:'חבר'}]},
-{c:'半',en:'half',he:'חצי',on:['ハン'],kun:['なか.ば'],s:5,j:'N5',v:[{w:'半分',r:'はんぶん',en:'half',he:'חצי'}]},
-{c:'母',en:'mother',he:'אמא',on:['ボ'],kun:['はは'],s:5,j:'N5',v:[{w:'お母さん',r:'おかあさん',en:'mother',he:'אמא'}]},
-{c:'父',en:'father',he:'אבא',on:['フ'],kun:['ちち'],s:4,j:'N5',v:[{w:'お父さん',r:'おとうさん',en:'father',he:'אבא'}]},
-{c:'毎',en:'every',he:'כל',on:['マイ'],kun:[],s:6,j:'N5',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
+{c:'一',en:'one',he:'אחד',on:['イチ','イツ'],kun:['ひと.つ'],s:1,j:'N5',m:'A single horizontal line — ONE stroke for ONE thing',v:[{w:'一つ',r:'ひとつ',en:'one thing',he:'דבר אחד'}]},
+{c:'二',en:'two',he:'שניים',on:['ニ'],kun:['ふた.つ'],s:2,j:'N5',m:'Two horizontal lines stacked — TWO levels',v:[{w:'二つ',r:'ふたつ',en:'two things',he:'שני דברים'}]},
+{c:'三',en:'three',he:'שלושה',on:['サン'],kun:['みっ.つ'],s:3,j:'N5',m:'Three horizontal lines — a sandwich with THREE layers',v:[{w:'三つ',r:'みっつ',en:'three things',he:'שלושה דברים'}]},
+{c:'四',en:'four',he:'ארבעה',on:['シ'],kun:['よ.つ','よん'],s:5,j:'N5',m:'A window divided into FOUR panes by the lines inside',v:[{w:'四つ',r:'よっつ',en:'four things',he:'ארבעה דברים'}]},
+{c:'五',en:'five',he:'חמישה',on:['ゴ'],kun:['いつ.つ'],s:4,j:'N5',m:'Looks like a spool of thread — FIVE fingers wrap around it',v:[{w:'五つ',r:'いつつ',en:'five things',he:'חמישה דברים'}]},
+{c:'六',en:'six',he:'שישה',on:['ロク'],kun:['む.つ'],s:4,j:'N5',m:'A person doing the splits with a hat — SIX-pointed star pose',v:[{w:'六つ',r:'むっつ',en:'six things',he:'שישה דברים'}]},
+{c:'七',en:'seven',he:'שבעה',on:['シチ'],kun:['なな.つ'],s:2,j:'N5',m:'Looks like an upside-down 7 — SEVEN with a twist',v:[{w:'七つ',r:'ななつ',en:'seven things',he:'שבעה דברים'}]},
+{c:'八',en:'eight',he:'שמונה',on:['ハチ'],kun:['や.つ'],s:2,j:'N5',m:'Two lines spreading apart like an opening — EIGHT is wide open',v:[{w:'八つ',r:'やっつ',en:'eight things',he:'שמונה דברים'}]},
+{c:'九',en:'nine',he:'תשעה',on:['キュウ','ク'],kun:['ここの.つ'],s:2,j:'N5',m:'Almost like a hook — one short of TEN, catching the NINE',v:[{w:'九つ',r:'ここのつ',en:'nine things',he:'תשעה דברים'}]},
+{c:'十',en:'ten',he:'עשר',on:['ジュウ'],kun:['とお'],s:2,j:'N5',m:'A cross shape — like a plus sign adding up to TEN',v:[{w:'十',r:'じゅう',en:'ten',he:'עשר'}]},
+{c:'百',en:'hundred',he:'מאה',on:['ヒャク'],kun:[],s:6,j:'N5',m:'One on top of a white box — ONE HUNDRED white things stored inside',v:[{w:'百',r:'ひゃく',en:'hundred',he:'מאה'}]},
+{c:'千',en:'thousand',he:'אלף',on:['セン'],kun:['ち'],s:3,j:'N5',m:'A person with a line through — carrying a THOUSAND things on their back',v:[{w:'千',r:'せん',en:'thousand',he:'אלף'}]},
+{c:'万',en:'ten thousand',he:'עשרת אלפים',on:['マン','バン'],kun:[],s:3,j:'N5',m:'A cliff with a slope — TEN THOUSAND steps to climb',v:[{w:'一万',r:'いちまん',en:'ten thousand',he:'עשרת אלפים'}]},
+{c:'円',en:'circle/yen',he:'יֵן/עיגול',on:['エン'],kun:['まる.い'],s:4,j:'N5',m:'A frame with inner lines — a COIN seen from above',v:[{w:'百円',r:'ひゃくえん',en:'100 yen',he:'מאה יֵן'}]},
+{c:'時',en:'time/hour',he:'שעה/זמן',on:['ジ'],kun:['とき'],s:10,j:'N5',m:'Sun radical + temple — the sun marks TIME at the temple',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
+{c:'日',en:'day/sun',he:'יום/שמש',on:['ニチ','ジツ'],kun:['ひ','か'],s:4,j:'N5',m:'A window frame with the SUN shining through',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
+{c:'月',en:'month/moon',he:'חודש/ירח',on:['ゲツ','ガツ'],kun:['つき'],s:4,j:'N5',m:'A crescent MOON with two lines — the moon over a month',v:[{w:'一月',r:'いちがつ',en:'January',he:'ינואר'}]},
+{c:'火',en:'fire',he:'אש',on:['カ'],kun:['ひ'],s:4,j:'N5',m:'A person with arms up and sparks flying — FIRE dancing',v:[{w:'火曜日',r:'かようび',en:'Tuesday',he:'יום שלישי'}]},
+{c:'水',en:'water',he:'מים',on:['スイ'],kun:['みず'],s:4,j:'N5',m:'A stream flowing — WATER splashing to both sides',v:[{w:'水曜日',r:'すいようび',en:'Wednesday',he:'יום רביעי'}]},
+{c:'木',en:'tree/wood',he:'עץ',on:['モク','ボク'],kun:['き'],s:4,j:'N5',m:'A TREE with branches spreading up and roots going down',v:[{w:'木曜日',r:'もくようび',en:'Thursday',he:'יום חמישי'}]},
+{c:'金',en:'gold/money',he:'זהב/כסף',on:['キン','コン'],kun:['かね'],s:8,j:'N5',m:'A mountain with treasure underneath — digging for GOLD',v:[{w:'お金',r:'おかね',en:'money',he:'כסף'}]},
+{c:'土',en:'earth/soil',he:'אדמה',on:['ド','ト'],kun:['つち'],s:3,j:'N5',m:'A cross growing from the ground — a plant sprouting from EARTH',v:[{w:'土曜日',r:'どようび',en:'Saturday',he:'יום שבת'}]},
+{c:'曜',en:'day of week',he:'יום בשבוע',on:['ヨウ'],kun:[],s:18,j:'N5',m:'Sun + wings — the days of the week FLY by with the sun',v:[{w:'曜日',r:'ようび',en:'day of week',he:'יום בשבוע'}]},
+{c:'年',en:'year',he:'שנה',on:['ネン'],kun:['とし'],s:6,j:'N5',m:'A person carrying grain on their back — harvest marks the YEAR',v:[{w:'今年',r:'ことし',en:'this year',he:'השנה'}]},
+{c:'人',en:'person',he:'אדם',on:['ジン','ニン'],kun:['ひと'],s:2,j:'N5',m:'A person walking — two legs striding forward',v:[{w:'日本人',r:'にほんじん',en:'Japanese person',he:'יפני'}]},
+{c:'女',en:'woman',he:'אישה',on:['ジョ'],kun:['おんな'],s:3,j:'N5',m:'A graceful figure kneeling — a WOMAN in traditional pose',v:[{w:'女の人',r:'おんなのひと',en:'woman',he:'אישה'}]},
+{c:'男',en:'man',he:'גבר',on:['ダン','ナン'],kun:['おとこ'],s:7,j:'N5',m:'Rice field + power — a MAN using strength in the field',v:[{w:'男の人',r:'おとこのひと',en:'man',he:'גבר'}]},
+{c:'子',en:'child',he:'ילד',on:['シ','ス'],kun:['こ'],s:3,j:'N5',m:'A baby with arms outstretched — a CHILD reaching up',v:[{w:'子供',r:'こども',en:'child',he:'ילד'}]},
+{c:'学',en:'study',he:'ללמוד',on:['ガク'],kun:['まな.ぶ'],s:8,j:'N5',m:'A child under a roof with knowledge above — STUDYING at school',v:[{w:'学生',r:'がくせい',en:'student',he:'תלמיד'}]},
+{c:'生',en:'life/birth',he:'חיים/לידה',on:['セイ','ショウ'],kun:['い.きる','う.まれる'],s:5,j:'N5',m:'A plant growing from the ground — new LIFE sprouting',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
+{c:'先',en:'previous/ahead',he:'קודם/לפני',on:['セン'],kun:['さき'],s:6,j:'N5',m:'Legs walking AHEAD — the person who goes FIRST',v:[{w:'先生',r:'せんせい',en:'teacher',he:'מורה'}]},
+{c:'何',en:'what',he:'מה',on:['カ'],kun:['なに','なん'],s:7,j:'N5',m:'A person carrying something — WHAT is on their back?',v:[{w:'何時',r:'なんじ',en:'what time',he:'מתי'}]},
+{c:'上',en:'up/above',he:'למעלה',on:['ジョウ'],kun:['うえ','あ.がる'],s:3,j:'N5',m:'A line pointing UP above the base — rising ABOVE',v:[{w:'上手',r:'じょうず',en:'skillful',he:'מיומן'}]},
+{c:'下',en:'down/below',he:'למטה',on:['カ','ゲ'],kun:['した','さ.がる'],s:3,j:'N5',m:'A line pointing DOWN below the base — going BELOW',v:[{w:'下手',r:'へた',en:'unskillful',he:'לא מיומן'}]},
+{c:'中',en:'middle/inside',he:'אמצע/פנים',on:['チュウ'],kun:['なか'],s:4,j:'N5',m:'A line through the CENTER of a box — right in the MIDDLE',v:[{w:'中国',r:'ちゅうごく',en:'China',he:'סין'}]},
+{c:'大',en:'big',he:'גדול',on:['ダイ','タイ'],kun:['おお.きい'],s:3,j:'N5',m:'A person stretching arms wide — showing something BIG',v:[{w:'大きい',r:'おおきい',en:'big',he:'גדול'}]},
+{c:'小',en:'small',he:'קטן',on:['ショウ'],kun:['ちい.さい','こ'],s:3,j:'N5',m:'A tiny dividing line with small strokes — something SMALL',v:[{w:'小さい',r:'ちいさい',en:'small',he:'קטן'}]},
+{c:'高',en:'tall/expensive',he:'גבוה/יקר',on:['コウ'],kun:['たか.い'],s:10,j:'N5',m:'A TALL tower with a roof — a HIGH building reaching up',v:[{w:'高い',r:'たかい',en:'expensive',he:'יקר'}]},
+{c:'安',en:'cheap/safe',he:'זול/בטוח',on:['アン'],kun:['やす.い'],s:6,j:'N5',m:'A woman under a roof — SAFE and PEACEFUL at home',v:[{w:'安い',r:'やすい',en:'cheap',he:'זול'}]},
+{c:'新',en:'new',he:'חדש',on:['シン'],kun:['あたら.しい'],s:13,j:'N5',m:'Standing tree + axe — cutting wood to build something NEW',v:[{w:'新しい',r:'あたらしい',en:'new',he:'חדש'}]},
+{c:'古',en:'old',he:'ישן',on:['コ'],kun:['ふる.い'],s:5,j:'N5',m:'Ten + mouth — a story told TEN times becomes OLD',v:[{w:'古い',r:'ふるい',en:'old',he:'ישן'}]},
+{c:'長',en:'long/chief',he:'ארוך/ראש',on:['チョウ'],kun:['なが.い'],s:8,j:'N5',m:'Long flowing hair — a LONG-haired elder, the CHIEF',v:[{w:'長い',r:'ながい',en:'long',he:'ארוך'}]},
+{c:'短',en:'short',he:'קצר',on:['タン'],kun:['みじか.い'],s:12,j:'N5',m:'Arrow + bean — a SHORT arrow that only reaches a bean',v:[{w:'短い',r:'みじかい',en:'short',he:'קצר'}]},
+{c:'白',en:'white',he:'לבן',on:['ハク','ビャク'],kun:['しろ.い'],s:5,j:'N5',m:'A ray of sunlight — pure WHITE light from above',v:[{w:'白い',r:'しろい',en:'white',he:'לבן'}]},
+{c:'間',en:'interval/between',he:'מרווח/בין',on:['カン','ケン'],kun:['あいだ','ま'],s:12,j:'N5',m:'Sun seen through a gate — light in the SPACE BETWEEN doors',v:[{w:'時間',r:'じかん',en:'time',he:'זמן'}]},
+{c:'食',en:'eat/food',he:'לאכול/אוכל',on:['ショク'],kun:['た.べる'],s:9,j:'N5',m:'A person with a plate and lid — sitting down to EAT',v:[{w:'食べる',r:'たべる',en:'to eat',he:'לאכול'}]},
+{c:'飲',en:'drink',he:'לשתות',on:['イン'],kun:['の.む'],s:12,j:'N5',m:'Food radical + person opening mouth — someone DRINKING',v:[{w:'飲む',r:'のむ',en:'to drink',he:'לשתות'}]},
+{c:'見',en:'see/look',he:'לראות',on:['ケン'],kun:['み.る'],s:7,j:'N5',m:'An eye on legs — walking around to SEE things',v:[{w:'見る',r:'みる',en:'to see',he:'לראות'}]},
+{c:'聞',en:'hear/ask',he:'לשמוע',on:['ブン','モン'],kun:['き.く'],s:14,j:'N5',m:'An ear at the gate — LISTENING at the door to HEAR',v:[{w:'聞く',r:'きく',en:'to hear',he:'לשמוע'}]},
+{c:'読',en:'read',he:'לקרוא',on:['ドク','トク'],kun:['よ.む'],s:14,j:'N5',m:'Words + sell — buying words to READ them',v:[{w:'読む',r:'よむ',en:'to read',he:'לקרוא'}]},
+{c:'書',en:'write',he:'לכתוב',on:['ショ'],kun:['か.く'],s:10,j:'N5',m:'A hand holding a brush over a surface — WRITING characters',v:[{w:'書く',r:'かく',en:'to write',he:'לכתוב'}]},
+{c:'話',en:'talk/story',he:'לדבר/סיפור',on:['ワ'],kun:['はな.す','はなし'],s:13,j:'N5',m:'Words + tongue — using your tongue to TALK',v:[{w:'電話',r:'でんわ',en:'telephone',he:'טלפון'}]},
+{c:'語',en:'language/word',he:'שפה/מילה',on:['ゴ'],kun:['かた.る'],s:14,j:'N5',m:'Words + five + mouth — FIVE mouths speaking a LANGUAGE',v:[{w:'日本語',r:'にほんご',en:'Japanese',he:'יפנית'}]},
+{c:'言',en:'say',he:'לומר',on:['ゲン','ゴン'],kun:['い.う','こと'],s:7,j:'N5',m:'Lines coming from a mouth — words being SAID',v:[{w:'言う',r:'いう',en:'to say',he:'לומר'}]},
+{c:'行',en:'go/row',he:'ללכת/שורה',on:['コウ','ギョウ'],kun:['い.く','おこな.う'],s:6,j:'N5',m:'A crossroads — choosing where to GO',v:[{w:'行く',r:'いく',en:'to go',he:'ללכת'}]},
+{c:'来',en:'come',he:'לבוא',on:['ライ'],kun:['く.る'],s:7,j:'N5',m:'A tree with a person behind — someone COMING toward you',v:[{w:'来る',r:'くる',en:'to come',he:'לבוא'}]},
+{c:'出',en:'exit/put out',he:'לצאת',on:['シュツ'],kun:['で.る','だ.す'],s:5,j:'N5',m:'Mountains pushing OUT — something EXITING upward',v:[{w:'出る',r:'でる',en:'to exit',he:'לצאת'}]},
+{c:'入',en:'enter',he:'להיכנס',on:['ニュウ'],kun:['い.る','はい.る'],s:2,j:'N5',m:'A tent opening — an invitation to ENTER inside',v:[{w:'入る',r:'はいる',en:'to enter',he:'להיכנס'}]},
+{c:'休',en:'rest',he:'לנוח',on:['キュウ'],kun:['やす.む'],s:6,j:'N5',m:'A person leaning against a tree — taking a REST',v:[{w:'休む',r:'やすむ',en:'to rest',he:'לנוח'}]},
+{c:'立',en:'stand',he:'לעמוד',on:['リツ'],kun:['た.つ'],s:5,j:'N5',m:'A person STANDING on the ground with feet planted',v:[{w:'立つ',r:'たつ',en:'to stand',he:'לעמוד'}]},
+{c:'前',en:'before/front',he:'לפני/קדימה',on:['ゼン'],kun:['まえ'],s:9,j:'N5',m:'Horns + knife cutting — preparing what comes BEFORE',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
+{c:'後',en:'after/behind',he:'אחרי/מאחור',on:['ゴ','コウ'],kun:['うし.ろ','あと'],s:9,j:'N5',m:'Short steps trailing BEHIND — coming AFTER someone',v:[{w:'午後',r:'ごご',en:'afternoon',he:'אחר הצהריים'}]},
+{c:'左',en:'left',he:'שמאל',on:['サ'],kun:['ひだり'],s:5,j:'N5',m:'A hand reaching LEFT — the LEFT hand holds a ruler',v:[{w:'左',r:'ひだり',en:'left',he:'שמאל'}]},
+{c:'右',en:'right',he:'ימין',on:['ウ','ユウ'],kun:['みぎ'],s:5,j:'N5',m:'A hand reaching RIGHT — the RIGHT hand holds food to eat',v:[{w:'右',r:'みぎ',en:'right',he:'ימין'}]},
+{c:'北',en:'north',he:'צפון',on:['ホク'],kun:['きた'],s:5,j:'N5',m:'Two people back to back — turning away from the cold NORTH',v:[{w:'北',r:'きた',en:'north',he:'צפון'}]},
+{c:'南',en:'south',he:'דרום',on:['ナン'],kun:['みなみ'],s:9,j:'N5',m:'A building with plants inside — warmth of the SOUTH',v:[{w:'南',r:'みなみ',en:'south',he:'דרום'}]},
+{c:'東',en:'east',he:'מזרח',on:['トウ'],kun:['ひがし'],s:8,j:'N5',m:'Sun rising behind a tree — the EAST where sun rises',v:[{w:'東京',r:'とうきょう',en:'Tokyo',he:'טוקיו'}]},
+{c:'西',en:'west',he:'מערב',on:['セイ','サイ'],kun:['にし'],s:6,j:'N5',m:'A bird settling in its nest — birds rest in the WEST at sunset',v:[{w:'西',r:'にし',en:'west',he:'מערב'}]},
+{c:'外',en:'outside',he:'בחוץ',on:['ガイ','ゲ'],kun:['そと','ほか'],s:5,j:'N5',m:'Evening + divination — reading fortunes OUTSIDE at dusk',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
+{c:'国',en:'country',he:'מדינה',on:['コク'],kun:['くに'],s:8,j:'N5',m:'A jewel enclosed in borders — a treasure within a COUNTRY',v:[{w:'外国',r:'がいこく',en:'foreign country',he:'חוץ לארץ'}]},
+{c:'名',en:'name',he:'שם',on:['メイ','ミョウ'],kun:['な'],s:6,j:'N5',m:'Evening + mouth — calling out a NAME in the dark',v:[{w:'名前',r:'なまえ',en:'name',he:'שם'}]},
+{c:'電',en:'electricity',he:'חשמל',on:['デン'],kun:[],s:13,j:'N5',m:'Rain + lightning bolt — ELECTRICITY from a thunderstorm',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
+{c:'車',en:'car/vehicle',he:'מכונית/רכב',on:['シャ'],kun:['くるま'],s:7,j:'N5',m:'A VEHICLE seen from above — wheels and axle visible',v:[{w:'電車',r:'でんしゃ',en:'train',he:'רכבת'}]},
+{c:'天',en:'heaven/sky',he:'שמיים',on:['テン'],kun:['あめ','あま'],s:4,j:'N5',m:'A person with a big line above — the SKY above humanity',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
+{c:'気',en:'spirit/air',he:'רוח/אוויר',on:['キ','ケ'],kun:[],s:6,j:'N5',m:'Steam rising from rice — the SPIRIT of energy in the AIR',v:[{w:'天気',r:'てんき',en:'weather',he:'מזג אוויר'}]},
+{c:'雨',en:'rain',he:'גשם',on:['ウ'],kun:['あめ'],s:8,j:'N5',m:'Drops falling from a cloud window — RAIN pouring down',v:[{w:'雨',r:'あめ',en:'rain',he:'גשם'}]},
+{c:'本',en:'book/origin',he:'ספר/מקור',on:['ホン'],kun:['もと'],s:5,j:'N5',m:'A tree with a mark at the root — the ORIGIN, the root of a BOOK',v:[{w:'日本',r:'にほん',en:'Japan',he:'יפן'}]},
+{c:'友',en:'friend',he:'חבר',on:['ユウ'],kun:['とも'],s:4,j:'N5',m:'Two hands reaching together — FRIENDS helping each other',v:[{w:'友達',r:'ともだち',en:'friend',he:'חבר'}]},
+{c:'半',en:'half',he:'חצי',on:['ハン'],kun:['なか.ば'],s:5,j:'N5',m:'A line cutting something in two — split in HALF',v:[{w:'半分',r:'はんぶん',en:'half',he:'חצי'}]},
+{c:'母',en:'mother',he:'אמא',on:['ボ'],kun:['はは'],s:5,j:'N5',m:'A nurturing figure with two dots — MOTHER feeding her children',v:[{w:'お母さん',r:'おかあさん',en:'mother',he:'אמא'}]},
+{c:'父',en:'father',he:'אבא',on:['フ'],kun:['ちち'],s:4,j:'N5',m:'Two strong arms crossed — FATHER protecting the family',v:[{w:'お父さん',r:'おとうさん',en:'father',he:'אבא'}]},
+{c:'毎',en:'every',he:'כל',on:['マイ'],kun:[],s:6,j:'N5',m:'A mother doing things daily — EVERY day she cares for her family',v:[{w:'毎日',r:'まいにち',en:'every day',he:'כל יום'}]},
 
 // N4 - 50 kanji
 {c:'自',en:'self',he:'עצמי',on:['ジ','シ'],kun:['みずか.ら'],s:6,j:'N4',v:[{w:'自分',r:'じぶん',en:'oneself',he:'עצמי'}]},
@@ -358,100 +410,100 @@ const KANJI_DB = [
 {c:'広',en:'wide',he:'רחב',on:['コウ'],kun:['ひろ.い'],s:5,j:'N4',v:[{w:'広い',r:'ひろい',en:'wide',he:'רחב'}]},
 
 // N3 - 40 kanji
-{c:'政',en:'politics',he:'פוליטיקה',on:['セイ'],kun:['まつりごと'],s:9,j:'N3'},
-{c:'経',en:'sutra/economy',he:'כלכלה',on:['ケイ','キョウ'],kun:['へ.る'],s:11,j:'N3'},
-{c:'済',en:'settle/finish',he:'להסתיים',on:['サイ'],kun:['す.む'],s:11,j:'N3'},
-{c:'議',en:'deliberation',he:'דיון',on:['ギ'],kun:[],s:20,j:'N3'},
-{c:'民',en:'people/nation',he:'עם/אומה',on:['ミン'],kun:['たみ'],s:5,j:'N3'},
-{c:'連',en:'connect',he:'לחבר',on:['レン'],kun:['つら.なる','つ.れる'],s:10,j:'N3'},
-{c:'対',en:'opposite/versus',he:'מול/נגד',on:['タイ','ツイ'],kun:[],s:7,j:'N3'},
-{c:'部',en:'section/part',he:'חלק/מחלקה',on:['ブ'],kun:[],s:11,j:'N3'},
-{c:'合',en:'fit/join',he:'להתאים',on:['ゴウ','ガッ'],kun:['あ.う'],s:6,j:'N3'},
-{c:'市',en:'city/market',he:'עיר/שוק',on:['シ'],kun:['いち'],s:5,j:'N3'},
-{c:'内',en:'inside',he:'פנימי',on:['ナイ','ダイ'],kun:['うち'],s:4,j:'N3'},
-{c:'相',en:'mutual',he:'הדדי',on:['ソウ','ショウ'],kun:['あい'],s:9,j:'N3'},
-{c:'定',en:'determine/fix',he:'לקבוע',on:['テイ','ジョウ'],kun:['さだ.める'],s:8,j:'N3'},
-{c:'回',en:'times/revolve',he:'פעמים/לסובב',on:['カイ'],kun:['まわ.る'],s:6,j:'N3'},
-{c:'選',en:'elect/choose',he:'לבחור',on:['セン'],kun:['えら.ぶ'],s:15,j:'N3'},
-{c:'米',en:'rice/America',he:'אורז/אמריקה',on:['ベイ','マイ'],kun:['こめ'],s:6,j:'N3'},
-{c:'実',en:'truth/fruit',he:'אמת/פרי',on:['ジツ'],kun:['み','みの.る'],s:8,j:'N3'},
-{c:'関',en:'connection/barrier',he:'קשר/מחסום',on:['カン'],kun:['せき','かか.わる'],s:14,j:'N3'},
-{c:'決',en:'decide',he:'להחליט',on:['ケツ'],kun:['き.める'],s:7,j:'N3'},
-{c:'全',en:'all/whole',he:'כל/שלם',on:['ゼン'],kun:['まった.く','すべ.て'],s:6,j:'N3'},
-{c:'表',en:'surface/express',he:'פני שטח/לבטא',on:['ヒョウ'],kun:['おもて','あらわ.す'],s:8,j:'N3'},
-{c:'戦',en:'war/battle',he:'מלחמה/קרב',on:['セン'],kun:['いくさ','たたか.う'],s:13,j:'N3'},
-{c:'届',en:'deliver/reach',he:'להגיע/למסור',on:['トドケ'],kun:['とど.ける'],s:8,j:'N3'},
-{c:'変',en:'change/strange',he:'שינוי/מוזר',on:['ヘン'],kun:['か.わる'],s:9,j:'N3'},
-{c:'付',en:'attach',he:'לצרף',on:['フ'],kun:['つ.ける'],s:5,j:'N3'},
-{c:'由',en:'reason/cause',he:'סיבה',on:['ユ','ユウ'],kun:['よし'],s:5,j:'N3'},
-{c:'説',en:'theory/explain',he:'תיאוריה/להסביר',on:['セツ'],kun:['と.く'],s:14,j:'N3'},
-{c:'受',en:'receive',he:'לקבל',on:['ジュ'],kun:['う.ける'],s:8,j:'N3'},
-{c:'法',en:'law/method',he:'חוק/שיטה',on:['ホウ'],kun:[],s:8,j:'N3'},
-{c:'問',en:'question',he:'שאלה',on:['モン'],kun:['と.う'],s:11,j:'N3'},
-{c:'題',en:'topic/title',he:'נושא/כותרת',on:['ダイ'],kun:[],s:18,j:'N3'},
-{c:'意',en:'meaning/mind',he:'משמעות/כוונה',on:['イ'],kun:[],s:13,j:'N3'},
-{c:'味',en:'taste/flavor',he:'טעם',on:['ミ'],kun:['あじ'],s:8,j:'N3'},
-{c:'注',en:'pour/note',he:'לשפוך/הערה',on:['チュウ'],kun:['そそ.ぐ'],s:8,j:'N3'},
-{c:'開',en:'open',he:'לפתוח',on:['カイ'],kun:['あ.ける','ひら.く'],s:12,j:'N3'},
-{c:'集',en:'gather/collect',he:'לאסוף',on:['シュウ'],kun:['あつ.める'],s:12,j:'N3'},
-{c:'品',en:'goods/dignity',he:'מוצר/איכות',on:['ヒン'],kun:['しな'],s:9,j:'N3'},
-{c:'発',en:'departure/emit',he:'יציאה/לשלוח',on:['ハツ','ホツ'],kun:[],s:9,j:'N3'},
-{c:'持',en:'hold/have',he:'להחזיק',on:['ジ'],kun:['も.つ'],s:9,j:'N3'},
-{c:'世',en:'world/generation',he:'עולם/דור',on:['セイ','セ'],kun:['よ'],s:5,j:'N3'},
+{c:'政',en:'politics',he:'פוליטיקה',on:['セイ'],kun:['まつりごと'],s:9,j:'N3',v:[{w:'政治',r:'せいじ',en:'politics',he:'פוליטיקה'}]},
+{c:'経',en:'sutra/economy',he:'כלכלה',on:['ケイ','キョウ'],kun:['へ.る'],s:11,j:'N3',v:[{w:'経済',r:'けいざい',en:'economy',he:'כלכלה'}]},
+{c:'済',en:'settle/finish',he:'להסתיים',on:['サイ'],kun:['す.む'],s:11,j:'N3',v:[{w:'経済',r:'けいざい',en:'economy',he:'כלכלה'}]},
+{c:'議',en:'deliberation',he:'דיון',on:['ギ'],kun:[],s:20,j:'N3',v:[{w:'会議',r:'かいぎ',en:'meeting',he:'ישיבה'}]},
+{c:'民',en:'people/nation',he:'עם/אומה',on:['ミン'],kun:['たみ'],s:5,j:'N3',v:[{w:'国民',r:'こくみん',en:'citizen',he:'אזרח'}]},
+{c:'連',en:'connect',he:'לחבר',on:['レン'],kun:['つら.なる','つ.れる'],s:10,j:'N3',v:[{w:'連絡',r:'れんらく',en:'contact',he:'קשר'}]},
+{c:'対',en:'opposite/versus',he:'מול/נגד',on:['タイ','ツイ'],kun:[],s:7,j:'N3',v:[{w:'反対',r:'はんたい',en:'opposition',he:'התנגדות'}]},
+{c:'部',en:'section/part',he:'חלק/מחלקה',on:['ブ'],kun:[],s:11,j:'N3',v:[{w:'全部',r:'ぜんぶ',en:'all',he:'הכל'}]},
+{c:'合',en:'fit/join',he:'להתאים',on:['ゴウ','ガッ'],kun:['あ.う'],s:6,j:'N3',v:[{w:'場合',r:'ばあい',en:'case/situation',he:'מקרה'}]},
+{c:'市',en:'city/market',he:'עיר/שוק',on:['シ'],kun:['いち'],s:5,j:'N3',v:[{w:'市場',r:'しじょう',en:'market',he:'שוק'}]},
+{c:'内',en:'inside',he:'פנימי',on:['ナイ','ダイ'],kun:['うち'],s:4,j:'N3',v:[{w:'案内',r:'あんない',en:'guidance',he:'הדרכה'}]},
+{c:'相',en:'mutual',he:'הדדי',on:['ソウ','ショウ'],kun:['あい'],s:9,j:'N3',v:[{w:'相談',r:'そうだん',en:'consultation',he:'התייעצות'}]},
+{c:'定',en:'determine/fix',he:'לקבוע',on:['テイ','ジョウ'],kun:['さだ.める'],s:8,j:'N3',v:[{w:'予定',r:'よてい',en:'schedule',he:'תוכנית'}]},
+{c:'回',en:'times/revolve',he:'פעמים/לסובב',on:['カイ'],kun:['まわ.る'],s:6,j:'N3',v:[{w:'今回',r:'こんかい',en:'this time',he:'הפעם'}]},
+{c:'選',en:'elect/choose',he:'לבחור',on:['セン'],kun:['えら.ぶ'],s:15,j:'N3',v:[{w:'選択',r:'せんたく',en:'choice',he:'בחירה'}]},
+{c:'米',en:'rice/America',he:'אורז/אמריקה',on:['ベイ','マイ'],kun:['こめ'],s:6,j:'N3',v:[{w:'お米',r:'おこめ',en:'rice',he:'אורז'}]},
+{c:'実',en:'truth/fruit',he:'אמת/פרי',on:['ジツ'],kun:['み','みの.る'],s:8,j:'N3',v:[{w:'実際',r:'じっさい',en:'actually',he:'בפועל'}]},
+{c:'関',en:'connection/barrier',he:'קשר/מחסום',on:['カン'],kun:['せき','かか.わる'],s:14,j:'N3',v:[{w:'関係',r:'かんけい',en:'relation',he:'יחס'}]},
+{c:'決',en:'decide',he:'להחליט',on:['ケツ'],kun:['き.める'],s:7,j:'N3',v:[{w:'決定',r:'けってい',en:'decision',he:'החלטה'}]},
+{c:'全',en:'all/whole',he:'כל/שלם',on:['ゼン'],kun:['まった.く','すべ.て'],s:6,j:'N3',v:[{w:'全然',r:'ぜんぜん',en:'not at all',he:'בכלל לא'}]},
+{c:'表',en:'surface/express',he:'פני שטח/לבטא',on:['ヒョウ'],kun:['おもて','あらわ.す'],s:8,j:'N3',v:[{w:'発表',r:'はっぴょう',en:'announcement',he:'הכרזה'}]},
+{c:'戦',en:'war/battle',he:'מלחמה/קרב',on:['セン'],kun:['いくさ','たたか.う'],s:13,j:'N3',v:[{w:'戦争',r:'せんそう',en:'war',he:'מלחמה'}]},
+{c:'届',en:'deliver/reach',he:'להגיע/למסור',on:['トドケ'],kun:['とど.ける'],s:8,j:'N3',v:[{w:'届ける',r:'とどける',en:'to deliver',he:'למסור'}]},
+{c:'変',en:'change/strange',he:'שינוי/מוזר',on:['ヘン'],kun:['か.わる'],s:9,j:'N3',v:[{w:'大変',r:'たいへん',en:'terrible/very',he:'נורא/מאוד'}]},
+{c:'付',en:'attach',he:'לצרף',on:['フ'],kun:['つ.ける'],s:5,j:'N3',v:[{w:'気付く',r:'きづく',en:'to notice',he:'לשים לב'}]},
+{c:'由',en:'reason/cause',he:'סיבה',on:['ユ','ユウ'],kun:['よし'],s:5,j:'N3',v:[{w:'自由',r:'じゆう',en:'freedom',he:'חופש'}]},
+{c:'説',en:'theory/explain',he:'תיאוריה/להסביר',on:['セツ'],kun:['と.く'],s:14,j:'N3',v:[{w:'説明',r:'せつめい',en:'explanation',he:'הסבר'}]},
+{c:'受',en:'receive',he:'לקבל',on:['ジュ'],kun:['う.ける'],s:8,j:'N3',v:[{w:'受付',r:'うけつけ',en:'reception',he:'קבלה'}]},
+{c:'法',en:'law/method',he:'חוק/שיטה',on:['ホウ'],kun:[],s:8,j:'N3',v:[{w:'方法',r:'ほうほう',en:'method',he:'שיטה'}]},
+{c:'問',en:'question',he:'שאלה',on:['モン'],kun:['と.う'],s:11,j:'N3',v:[{w:'質問',r:'しつもん',en:'question',he:'שאלה'}]},
+{c:'題',en:'topic/title',he:'נושא/כותרת',on:['ダイ'],kun:[],s:18,j:'N3',v:[{w:'問題',r:'もんだい',en:'problem',he:'בעיה'}]},
+{c:'意',en:'meaning/mind',he:'משמעות/כוונה',on:['イ'],kun:[],s:13,j:'N3',v:[{w:'意味',r:'いみ',en:'meaning',he:'משמעות'}]},
+{c:'味',en:'taste/flavor',he:'טעם',on:['ミ'],kun:['あじ'],s:8,j:'N3',v:[{w:'意味',r:'いみ',en:'meaning',he:'משמעות'}]},
+{c:'注',en:'pour/note',he:'לשפוך/הערה',on:['チュウ'],kun:['そそ.ぐ'],s:8,j:'N3',v:[{w:'注意',r:'ちゅうい',en:'attention',he:'תשומת לב'}]},
+{c:'開',en:'open',he:'לפתוח',on:['カイ'],kun:['あ.ける','ひら.く'],s:12,j:'N3',v:[{w:'開発',r:'かいはつ',en:'development',he:'פיתוח'}]},
+{c:'集',en:'gather/collect',he:'לאסוף',on:['シュウ'],kun:['あつ.める'],s:12,j:'N3',v:[{w:'集中',r:'しゅうちゅう',en:'concentration',he:'ריכוז'}]},
+{c:'品',en:'goods/dignity',he:'מוצר/איכות',on:['ヒン'],kun:['しな'],s:9,j:'N3',v:[{w:'食品',r:'しょくひん',en:'food product',he:'מוצר מזון'}]},
+{c:'発',en:'departure/emit',he:'יציאה/לשלוח',on:['ハツ','ホツ'],kun:[],s:9,j:'N3',v:[{w:'出発',r:'しゅっぱつ',en:'departure',he:'יציאה'}]},
+{c:'持',en:'hold/have',he:'להחזיק',on:['ジ'],kun:['も.つ'],s:9,j:'N3',v:[{w:'気持ち',r:'きもち',en:'feeling',he:'תחושה'}]},
+{c:'世',en:'world/generation',he:'עולם/דור',on:['セイ','セ'],kun:['よ'],s:5,j:'N3',v:[{w:'世界',r:'せかい',en:'world',he:'עולם'}]},
 
 // N2 - 30 kanji
-{c:'権',en:'authority/right',he:'סמכות/זכות',on:['ケン','ゴン'],kun:[],s:15,j:'N2'},
-{c:'制',en:'system/control',he:'מערכת/שליטה',on:['セイ'],kun:[],s:8,j:'N2'},
-{c:'導',en:'guide/lead',he:'להנחות/להוביל',on:['ドウ'],kun:['みちび.く'],s:15,j:'N2'},
-{c:'構',en:'construct/posture',he:'לבנות/מבנה',on:['コウ'],kun:['かま.える'],s:14,j:'N2'},
-{c:'職',en:'employment',he:'תעסוקה/מקצוע',on:['ショク'],kun:[],s:18,j:'N2'},
-{c:'域',en:'area/region',he:'אזור/תחום',on:['イキ'],kun:[],s:11,j:'N2'},
-{c:'存',en:'exist/suppose',he:'להתקיים/קיום',on:['ソン','ゾン'],kun:[],s:6,j:'N2'},
-{c:'査',en:'inspect',he:'לבדוק/חקירה',on:['サ'],kun:[],s:9,j:'N2'},
-{c:'態',en:'attitude/state',he:'גישה/מצב',on:['タイ'],kun:[],s:14,j:'N2'},
-{c:'割',en:'proportion/divide',he:'חלוקה/יחס',on:['カツ'],kun:['わ.る','わり'],s:12,j:'N2'},
-{c:'演',en:'perform/act',he:'להופיע/לבצע',on:['エン'],kun:[],s:14,j:'N2'},
-{c:'識',en:'discriminate/know',he:'להבחין/לזהות',on:['シキ'],kun:[],s:19,j:'N2'},
-{c:'験',en:'test/effect',he:'מבחן/ניסיון',on:['ケン','ゲン'],kun:[],s:18,j:'N2'},
-{c:'犯',en:'crime/offend',he:'פשע/עבירה',on:['ハン'],kun:['おか.す'],s:5,j:'N2'},
-{c:'因',en:'cause/factor',he:'גורם/סיבה',on:['イン'],kun:[],s:6,j:'N2'},
-{c:'基',en:'foundation/base',he:'בסיס/יסוד',on:['キ'],kun:['もと','もとい'],s:11,j:'N2'},
-{c:'価',en:'value/price',he:'ערך/מחיר',on:['カ'],kun:['あたい'],s:8,j:'N2'},
-{c:'境',en:'boundary/border',he:'גבול/סביבה',on:['キョウ','ケイ'],kun:['さかい'],s:14,j:'N2'},
-{c:'賀',en:'congratulate',he:'ברכה/איחול',on:['ガ'],kun:[],s:12,j:'N2'},
-{c:'規',en:'standard/rule',he:'תקן/כלל',on:['キ'],kun:[],s:11,j:'N2'},
-{c:'術',en:'art/technique',he:'אמנות/טכניקה',on:['ジュツ'],kun:[],s:11,j:'N2'},
-{c:'資',en:'resources/capital',he:'משאבים/הון',on:['シ'],kun:[],s:13,j:'N2'},
-{c:'供',en:'offer/attendant',he:'להציע/ילד',on:['キョウ','ク'],kun:['そな.える','とも'],s:8,j:'N2'},
-{c:'断',en:'sever/refuse',he:'לסרב/לחתוך',on:['ダン'],kun:['た.つ','ことわ.る'],s:11,j:'N2'},
-{c:'容',en:'contain/form',he:'להכיל/צורה',on:['ヨウ'],kun:[],s:10,j:'N2'},
-{c:'易',en:'easy/divination',he:'קל/ניחוש',on:['エキ','イ'],kun:['やさ.しい'],s:8,j:'N2'},
-{c:'否',en:'negate/no',he:'לא/שלילה',on:['ヒ'],kun:['いな'],s:7,j:'N2'},
-{c:'絶',en:'sever/absolute',he:'מוחלט/לנתק',on:['ゼツ'],kun:['た.える','た.つ'],s:12,j:'N2'},
-{c:'率',en:'rate/ratio',he:'שיעור/יחס',on:['リツ','ソツ'],kun:['ひき.いる'],s:11,j:'N2'},
-{c:'略',en:'abbreviation/plan',he:'קיצור/תוכנית',on:['リャク'],kun:[],s:11,j:'N2'},
+{c:'権',en:'authority/right',he:'סמכות/זכות',on:['ケン','ゴン'],kun:[],s:15,j:'N2',v:[{w:'権利',r:'けんり',en:'right/privilege',he:'זכות'}]},
+{c:'制',en:'system/control',he:'מערכת/שליטה',on:['セイ'],kun:[],s:8,j:'N2',v:[{w:'制度',r:'せいど',en:'system',he:'מערכת'}]},
+{c:'導',en:'guide/lead',he:'להנחות/להוביל',on:['ドウ'],kun:['みちび.く'],s:15,j:'N2',v:[{w:'指導',r:'しどう',en:'guidance',he:'הדרכה'}]},
+{c:'構',en:'construct/posture',he:'לבנות/מבנה',on:['コウ'],kun:['かま.える'],s:14,j:'N2',v:[{w:'構造',r:'こうぞう',en:'structure',he:'מבנה'}]},
+{c:'職',en:'employment',he:'תעסוקה/מקצוע',on:['ショク'],kun:[],s:18,j:'N2',v:[{w:'職業',r:'しょくぎょう',en:'occupation',he:'מקצוע'}]},
+{c:'域',en:'area/region',he:'אזור/תחום',on:['イキ'],kun:[],s:11,j:'N2',v:[{w:'地域',r:'ちいき',en:'region',he:'אזור'}]},
+{c:'存',en:'exist/suppose',he:'להתקיים/קיום',on:['ソン','ゾン'],kun:[],s:6,j:'N2',v:[{w:'存在',r:'そんざい',en:'existence',he:'קיום'}]},
+{c:'査',en:'inspect',he:'לבדוק/חקירה',on:['サ'],kun:[],s:9,j:'N2',v:[{w:'調査',r:'ちょうさ',en:'investigation',he:'חקירה'}]},
+{c:'態',en:'attitude/state',he:'גישה/מצב',on:['タイ'],kun:[],s:14,j:'N2',v:[{w:'状態',r:'じょうたい',en:'condition',he:'מצב'}]},
+{c:'割',en:'proportion/divide',he:'חלוקה/יחס',on:['カツ'],kun:['わ.る','わり'],s:12,j:'N2',v:[{w:'割引',r:'わりびき',en:'discount',he:'הנחה'}]},
+{c:'演',en:'perform/act',he:'להופיע/לבצע',on:['エン'],kun:[],s:14,j:'N2',v:[{w:'演奏',r:'えんそう',en:'performance',he:'ביצוע מוזיקלי'}]},
+{c:'識',en:'discriminate/know',he:'להבחין/לזהות',on:['シキ'],kun:[],s:19,j:'N2',v:[{w:'知識',r:'ちしき',en:'knowledge',he:'ידע'}]},
+{c:'験',en:'test/effect',he:'מבחן/ניסיון',on:['ケン','ゲン'],kun:[],s:18,j:'N2',v:[{w:'経験',r:'けいけん',en:'experience',he:'ניסיון'}]},
+{c:'犯',en:'crime/offend',he:'פשע/עבירה',on:['ハン'],kun:['おか.す'],s:5,j:'N2',v:[{w:'犯罪',r:'はんざい',en:'crime',he:'פשע'}]},
+{c:'因',en:'cause/factor',he:'גורם/סיבה',on:['イン'],kun:[],s:6,j:'N2',v:[{w:'原因',r:'げんいん',en:'cause',he:'סיבה'}]},
+{c:'基',en:'foundation/base',he:'בסיס/יסוד',on:['キ'],kun:['もと','もとい'],s:11,j:'N2',v:[{w:'基本',r:'きほん',en:'basics',he:'בסיס'}]},
+{c:'価',en:'value/price',he:'ערך/מחיר',on:['カ'],kun:['あたい'],s:8,j:'N2',v:[{w:'価格',r:'かかく',en:'price',he:'מחיר'}]},
+{c:'境',en:'boundary/border',he:'גבול/סביבה',on:['キョウ','ケイ'],kun:['さかい'],s:14,j:'N2',v:[{w:'環境',r:'かんきょう',en:'environment',he:'סביבה'}]},
+{c:'賀',en:'congratulate',he:'ברכה/איחול',on:['ガ'],kun:[],s:12,j:'N2',v:[{w:'年賀状',r:'ねんがじょう',en:'New Year card',he:'גלויית שנה חדשה'}]},
+{c:'規',en:'standard/rule',he:'תקן/כלל',on:['キ'],kun:[],s:11,j:'N2',v:[{w:'規則',r:'きそく',en:'rule',he:'כלל'}]},
+{c:'術',en:'art/technique',he:'אמנות/טכניקה',on:['ジュツ'],kun:[],s:11,j:'N2',v:[{w:'技術',r:'ぎじゅつ',en:'technology',he:'טכנולוגיה'}]},
+{c:'資',en:'resources/capital',he:'משאבים/הון',on:['シ'],kun:[],s:13,j:'N2',v:[{w:'資料',r:'しりょう',en:'materials',he:'חומרים'}]},
+{c:'供',en:'offer/attendant',he:'להציע/ילד',on:['キョウ','ク'],kun:['そな.える','とも'],s:8,j:'N2',v:[{w:'子供',r:'こども',en:'child',he:'ילד'}]},
+{c:'断',en:'sever/refuse',he:'לסרב/לחתוך',on:['ダン'],kun:['た.つ','ことわ.る'],s:11,j:'N2',v:[{w:'判断',r:'はんだん',en:'judgment',he:'שיפוט'}]},
+{c:'容',en:'contain/form',he:'להכיל/צורה',on:['ヨウ'],kun:[],s:10,j:'N2',v:[{w:'内容',r:'ないよう',en:'contents',he:'תוכן'}]},
+{c:'易',en:'easy/divination',he:'קל/ניחוש',on:['エキ','イ'],kun:['やさ.しい'],s:8,j:'N2',v:[{w:'容易',r:'ようい',en:'easy',he:'קל'}]},
+{c:'否',en:'negate/no',he:'לא/שלילה',on:['ヒ'],kun:['いな'],s:7,j:'N2',v:[{w:'否定',r:'ひてい',en:'negation',he:'שלילה'}]},
+{c:'絶',en:'sever/absolute',he:'מוחלט/לנתק',on:['ゼツ'],kun:['た.える','た.つ'],s:12,j:'N2',v:[{w:'絶対',r:'ぜったい',en:'absolute',he:'מוחלט'}]},
+{c:'率',en:'rate/ratio',he:'שיעור/יחס',on:['リツ','ソツ'],kun:['ひき.いる'],s:11,j:'N2',v:[{w:'確率',r:'かくりつ',en:'probability',he:'הסתברות'}]},
+{c:'略',en:'abbreviation/plan',he:'קיצור/תוכנית',on:['リャク'],kun:[],s:11,j:'N2',v:[{w:'戦略',r:'せんりゃく',en:'strategy',he:'אסטרטגיה'}]},
 
 // N1 - 20 kanji
-{c:'微',en:'delicate/minute',he:'עדין/זעיר',on:['ビ'],kun:[],s:13,j:'N1'},
-{c:'奏',en:'play music',he:'לנגן',on:['ソウ'],kun:['かな.でる'],s:9,j:'N1'},
-{c:'翼',en:'wing',he:'כנף',on:['ヨク'],kun:['つばさ'],s:17,j:'N1'},
-{c:'摘',en:'pinch/pick',he:'לקטוף/להצביע',on:['テキ'],kun:['つ.む'],s:14,j:'N1'},
-{c:'磨',en:'polish/grind',he:'ללטש/לשפשף',on:['マ'],kun:['みが.く'],s:16,j:'N1'},
-{c:'殿',en:'palace/lord',he:'ארמון/אדון',on:['デン','テン'],kun:['との'],s:13,j:'N1'},
-{c:'濃',en:'thick/concentrated',he:'עבה/מרוכז',on:['ノウ'],kun:['こ.い'],s:16,j:'N1'},
-{c:'縮',en:'shrink/reduce',he:'לכווץ/לצמצם',on:['シュク'],kun:['ちぢ.む'],s:17,j:'N1'},
-{c:'薦',en:'recommend',he:'להמליץ',on:['セン'],kun:['すす.める'],s:16,j:'N1'},
-{c:'覆',en:'cover/overturn',he:'לכסות/להפוך',on:['フク'],kun:['おお.う','くつがえ.す'],s:18,j:'N1'},
-{c:'菊',en:'chrysanthemum',he:'חרצית',on:['キク'],kun:[],s:11,j:'N1'},
-{c:'鬱',en:'depression/gloom',he:'דיכאון/עצב',on:['ウツ'],kun:[],s:29,j:'N1'},
-{c:'旋',en:'revolve/go around',he:'להסתובב',on:['セン'],kun:[],s:11,j:'N1'},
-{c:'嘆',en:'sigh/lament',he:'לנאנח/לקונן',on:['タン'],kun:['なげ.く'],s:13,j:'N1'},
-{c:'弦',en:'bowstring/chord',he:'מיתר',on:['ゲン'],kun:['つる'],s:8,j:'N1'},
-{c:'酌',en:'serve sake',he:'למזוג סאקה',on:['シャク'],kun:['く.む'],s:10,j:'N1'},
-{c:'鎮',en:'calm/suppress',he:'להרגיע/לדכא',on:['チン'],kun:['しず.める'],s:18,j:'N1'},
-{c:'漂',en:'drift/float',he:'לצוף/לנדוד',on:['ヒョウ'],kun:['ただよ.う'],s:14,j:'N1'},
-{c:'賠',en:'compensation',he:'פיצוי',on:['バイ'],kun:[],s:15,j:'N1'},
-{c:'摂',en:'take in/absorb',he:'לקלוט/לספוג',on:['セツ'],kun:['と.る'],s:13,j:'N1'},
+{c:'微',en:'delicate/minute',he:'עדין/זעיר',on:['ビ'],kun:[],s:13,j:'N1',v:[{w:'微笑',r:'びしょう',en:'smile',he:'חיוך'}]},
+{c:'奏',en:'play music',he:'לנגן',on:['ソウ'],kun:['かな.でる'],s:9,j:'N1',v:[{w:'演奏',r:'えんそう',en:'performance',he:'נגינה'}]},
+{c:'翼',en:'wing',he:'כנף',on:['ヨク'],kun:['つばさ'],s:17,j:'N1',v:[{w:'翼',r:'つばさ',en:'wing',he:'כנף'}]},
+{c:'摘',en:'pinch/pick',he:'לקטוף/להצביע',on:['テキ'],kun:['つ.む'],s:14,j:'N1',v:[{w:'指摘',r:'してき',en:'pointing out',he:'הצבעה'}]},
+{c:'磨',en:'polish/grind',he:'ללטש/לשפשף',on:['マ'],kun:['みが.く'],s:16,j:'N1',v:[{w:'歯磨き',r:'はみがき',en:'toothpaste',he:'משחת שיניים'}]},
+{c:'殿',en:'palace/lord',he:'ארמון/אדון',on:['デン','テン'],kun:['との'],s:13,j:'N1',v:[{w:'宮殿',r:'きゅうでん',en:'palace',he:'ארמון'}]},
+{c:'濃',en:'thick/concentrated',he:'עבה/מרוכז',on:['ノウ'],kun:['こ.い'],s:16,j:'N1',v:[{w:'濃い',r:'こい',en:'thick/strong',he:'חזק/עבה'}]},
+{c:'縮',en:'shrink/reduce',he:'לכווץ/לצמצם',on:['シュク'],kun:['ちぢ.む'],s:17,j:'N1',v:[{w:'短縮',r:'たんしゅく',en:'shortening',he:'קיצור'}]},
+{c:'薦',en:'recommend',he:'להמליץ',on:['セン'],kun:['すす.める'],s:16,j:'N1',v:[{w:'推薦',r:'すいせん',en:'recommendation',he:'המלצה'}]},
+{c:'覆',en:'cover/overturn',he:'לכסות/להפוך',on:['フク'],kun:['おお.う','くつがえ.す'],s:18,j:'N1',v:[{w:'覆う',r:'おおう',en:'to cover',he:'לכסות'}]},
+{c:'菊',en:'chrysanthemum',he:'חרצית',on:['キク'],kun:[],s:11,j:'N1',v:[{w:'菊',r:'きく',en:'chrysanthemum',he:'חרצית'}]},
+{c:'鬱',en:'depression/gloom',he:'דיכאון/עצב',on:['ウツ'],kun:[],s:29,j:'N1',v:[{w:'鬱病',r:'うつびょう',en:'depression',he:'דיכאון'}]},
+{c:'旋',en:'revolve/go around',he:'להסתובב',on:['セン'],kun:[],s:11,j:'N1',v:[{w:'旋律',r:'せんりつ',en:'melody',he:'מנגינה'}]},
+{c:'嘆',en:'sigh/lament',he:'לנאנח/לקונן',on:['タン'],kun:['なげ.く'],s:13,j:'N1',v:[{w:'感嘆',r:'かんたん',en:'admiration',he:'התפעלות'}]},
+{c:'弦',en:'bowstring/chord',he:'מיתר',on:['ゲン'],kun:['つる'],s:8,j:'N1',v:[{w:'弦楽器',r:'げんがっき',en:'string instrument',he:'כלי מיתר'}]},
+{c:'酌',en:'serve sake',he:'למזוג סאקה',on:['シャク'],kun:['く.む'],s:10,j:'N1',v:[{w:'晩酌',r:'ばんしゃく',en:'evening drink',he:'שתייה ערבית'}]},
+{c:'鎮',en:'calm/suppress',he:'להרגיע/לדכא',on:['チン'],kun:['しず.める'],s:18,j:'N1',v:[{w:'鎮痛剤',r:'ちんつうざい',en:'painkiller',he:'משכך כאבים'}]},
+{c:'漂',en:'drift/float',he:'לצוף/לנדוד',on:['ヒョウ'],kun:['ただよ.う'],s:14,j:'N1',v:[{w:'漂流',r:'ひょうりゅう',en:'drifting',he:'סחיפה'}]},
+{c:'賠',en:'compensation',he:'פיצוי',on:['バイ'],kun:[],s:15,j:'N1',v:[{w:'賠償',r:'ばいしょう',en:'compensation',he:'פיצוי'}]},
+{c:'摂',en:'take in/absorb',he:'לקלוט/לספוג',on:['セツ'],kun:['と.る'],s:13,j:'N1',v:[{w:'摂取',r:'せっしゅ',en:'intake',he:'צריכה'}]},
 ];
 
 // Deduplicate by character
@@ -470,6 +522,19 @@ const SRS_STAGES = [
   {name:'מאסטר', nameEn:'Master', color:'#42a5f5', min:7, max:7},
   {name:'מואר', nameEn:'Enlightened', color:'#42f5a7', min:8, max:8},
   {name:'נצרב', nameEn:'Burned', color:'#f0a830', min:9, max:100},
+];
+
+const ACHIEVEMENTS = [
+  {id:'first_review', name:'צעד ראשון', desc:'סקירה ראשונה', icon:'🎯', check: s => s.totalReviews >= 1},
+  {id:'reviews_50', name:'חרוץ', desc:'50 סקירות', icon:'📚', check: s => s.totalReviews >= 50},
+  {id:'reviews_100', name:'מסור', desc:'100 סקירות', icon:'💯', check: s => s.totalReviews >= 100},
+  {id:'reviews_500', name:'מאסטר', desc:'500 סקירות', icon:'🏆', check: s => s.totalReviews >= 500},
+  {id:'streak_3', name:'3 ימים', desc:'רצף 3 ימים', icon:'🔥', check: s => s.streak >= 3},
+  {id:'streak_7', name:'שבוע!', desc:'רצף 7 ימים', icon:'⭐', check: s => s.streak >= 7},
+  {id:'streak_30', name:'חודש!', desc:'רצף 30 ימים', icon:'👑', check: s => s.streak >= 30},
+  {id:'xp_500', name:'500 XP', desc:'צברת 500 XP', icon:'💎', check: s => s.totalXP >= 500},
+  {id:'xp_1000', name:'1000 XP', desc:'צברת 1000 XP', icon:'🌟', check: s => s.totalXP >= 1000},
+  {id:'perfect_session', name:'מושלם!', desc:'סשן 100% דיוק', icon:'✨', check: s => s.perfectSession},
 ];
 
 const INTERVALS = [
@@ -521,6 +586,28 @@ function playSound(type) {
   } catch(e) {}
 }
 
+function speakJP(text, rate = 0.85) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = rate;
+  const voices = speechSynthesis.getVoices();
+  const jpVoice = voices.find(v => v.lang.startsWith('ja'));
+  if (jpVoice) u.voice = jpVoice;
+  speechSynthesis.speak(u);
+}
+// Pre-load voices
+if (window.speechSynthesis) speechSynthesis.getVoices();
+
+function haptic(style = 'light') {
+  if (navigator.vibrate) {
+    if (style === 'light') navigator.vibrate(10);
+    else if (style === 'medium') navigator.vibrate(20);
+    else navigator.vibrate([30, 10, 30]);
+  }
+}
+
 // ======================== STORAGE ========================
 function loadData(key, def) {
   try { const d = localStorage.getItem('kanji_' + key); return d ? JSON.parse(d) : def; } catch { return def; }
@@ -537,7 +624,7 @@ function App() {
   const [selectedLevels, setSelectedLevels] = useState(() => loadData('levels', ['N5']));
   const [quizMode, setQuizMode] = useState(() => loadData('quizMode', 'flashcard'));
   const [srsData, setSrsData] = useState(() => loadData('srs', {}));
-  const [stats, setStats] = useState(() => loadData('stats', {totalReviews:0, totalXP:0, streak:0, lastDate:null, dailyDone:0, dailyGoal:20}));
+  const [stats, setStats] = useState(() => loadData('stats', {totalReviews:0, totalXP:0, streak:0, lastDate:null, dailyDone:0, dailyGoal:20, history:{}}));
   const [sessionTime, setSessionTime] = useState(0);
   const [sessionActive, setSessionActive] = useState(false);
   const [lastAction, setLastAction] = useState(null);
@@ -757,6 +844,51 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
 
   const current = phase === 'active' ? dueKanji[currentIndex] : null;
 
+  // === ALL HOOKS MUST BE ABOVE ALL RETURNS ===
+
+  // Start session timer
+  useEffect(() => {
+    if (phase === 'active' && !sessionActive && dueKanji.length > 0) setSessionActive(true);
+  }, [phase]);
+
+  // no-op placeholder to keep hook count stable
+  useEffect(() => {}, [phase]);
+
+  // Generate MC options
+  useEffect(() => {
+    if (quizMode === 'mc' && current) {
+      const correct = current;
+      const others = kanji.filter(k => k.c !== correct.c).sort(() => Math.random() - 0.5).slice(0, 3);
+      const opts = [correct, ...others].sort(() => Math.random() - 0.5);
+      setMcOptions(opts);
+      setMcAnswer(null);
+    }
+    if (quizMode === 'typing') {
+      setTypingVal('');
+      setTypingResult(null);
+    }
+  }, [currentIndex, quizMode, current?.c]);
+
+  // Keyboard shortcuts - use ref to avoid dependency on handleRate
+  const handleRateRef = useRef(null);
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setFlipped(prev => { if (!prev) { doSound('flip'); return true; } return prev; });
+      }
+      if (['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) {
+        const idx = parseInt(e.code.replace('Digit','')) - 1;
+        if (idx >= 0 && idx < 4 && handleRateRef.current) handleRateRef.current(idx);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // === END HOOKS === Now safe to have conditional returns ===
+
   // Setup screen
   if (phase === 'setup') {
     const sizes = [
@@ -855,42 +987,6 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!sessionActive && dueKanji.length > 0) setSessionActive(true);
-  }, []);
-
-  // Generate MC options
-  useEffect(() => {
-    if (quizMode === 'mc' && current) {
-      const correct = current;
-      const others = kanji.filter(k => k.c !== correct.c).sort(() => Math.random() - 0.5).slice(0, 3);
-      const opts = [correct, ...others].sort(() => Math.random() - 0.5);
-      setMcOptions(opts);
-      setMcAnswer(null);
-    }
-    if (quizMode === 'typing') {
-      setTypingVal('');
-      setTypingResult(null);
-    }
-  }, [currentIndex, quizMode, current?.c]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space' && quizMode === 'flashcard') {
-        e.preventDefault();
-        if (!flipped) { setFlipped(true); doSound('flip'); }
-      }
-      if (flipped && quizMode === 'flashcard' && ['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) {
-        const idx = parseInt(e.code.replace('Digit','')) - 1;
-        if (idx >= 0 && idx < 4) handleRate(idx);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [flipped, quizMode, current?.c]);
 
   const handleRate = (ratingIdx) => {
     if (!current) return;
@@ -1007,12 +1103,10 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
     setLastAction(null);
   };
 
-  if (!current || dueKanji.length === 0) {
-    if (phase === 'active' && (sessionStats.correct + sessionStats.wrong) > 0) {
-      setPhase('done');
-      setSessionActive(false);
-      return null;
-    }
+  // Update ref for keyboard shortcuts
+  handleRateRef.current = handleRate;
+
+  if (phase === 'active' && (!current || currentIndex >= dueKanji.length)) {
     return (
       <div className="page" style={{textAlign:'center', paddingTop:60}}>
         <div style={{fontSize:64, marginBottom:20}}>✅</div>
