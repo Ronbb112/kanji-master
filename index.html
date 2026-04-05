@@ -624,37 +624,59 @@ function playSound(type) {
   } catch(e) {}
 }
 
+// --- Natural Japanese TTS ---
 let _speakAudio = null;
+let _jpVoiceCache = null;
+
+function _getBestJPVoice() {
+  if (_jpVoiceCache) return _jpVoiceCache;
+  if (!window.speechSynthesis) return null;
+  const voices = speechSynthesis.getVoices();
+  const jpVoices = voices.filter(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
+  if (jpVoices.length === 0) return null;
+  // Prefer premium/enhanced/natural voices (macOS "O-Ren", iOS "Kyoko Enhanced", etc.)
+  const premium = jpVoices.find(v => /premium|enhanced|natural|o-ren|hattori/i.test(v.name));
+  if (premium) { _jpVoiceCache = premium; return premium; }
+  // Prefer non-compact, non-default voices (usually higher quality)
+  const nonCompact = jpVoices.find(v => !/compact/i.test(v.name) && v.localService);
+  if (nonCompact) { _jpVoiceCache = nonCompact; return nonCompact; }
+  _jpVoiceCache = jpVoices[0];
+  return jpVoices[0];
+}
+
+function _speakWithBrowserTTS(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = 0.9;
+  u.pitch = 1.1;
+  const voice = _getBestJPVoice();
+  if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
+}
+
 function speakJP(text) {
   if (!text) return;
+  // Clean reading dots (e.g. あざ.な → あざな)
+  const clean = text.replace(/\./g, '');
   try {
-    if (_speakAudio) { _speakAudio.pause(); _speakAudio = null; }
-    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text);
+    if (_speakAudio) { _speakAudio.pause(); _speakAudio.currentTime = 0; _speakAudio = null; }
+    // Google TTS with gtx client (more reliable than tw-ob)
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean);
     _speakAudio = new Audio(url);
-    _speakAudio.play().catch(() => {
-      // Fallback to Web Speech API if Google TTS blocked
-      if (!window.speechSynthesis) return;
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ja-JP';
-      u.rate = 0.85;
-      const voices = speechSynthesis.getVoices();
-      const jpVoice = voices.find(v => v.lang.startsWith('ja'));
-      if (jpVoice) u.voice = jpVoice;
-      speechSynthesis.speak(u);
-    });
+    _speakAudio.onerror = () => _speakWithBrowserTTS(clean);
+    _speakAudio.play().catch(() => _speakWithBrowserTTS(clean));
   } catch(e) {
-    // Silent fallback
-    if (window.speechSynthesis) {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ja-JP';
-      u.rate = 0.85;
-      speechSynthesis.speak(u);
-    }
+    _speakWithBrowserTTS(clean);
   }
 }
-if (window.speechSynthesis) speechSynthesis.getVoices();
+
+// Pre-load voices (async on some browsers)
+if (window.speechSynthesis) {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => { _jpVoiceCache = null; _getBestJPVoice(); };
+}
 
 function haptic(style = 'light') {
   if (navigator.vibrate) {
