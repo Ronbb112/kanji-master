@@ -624,18 +624,36 @@ function playSound(type) {
   } catch(e) {}
 }
 
-function speakJP(text, rate = 0.85) {
-  if (!window.speechSynthesis) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ja-JP';
-  u.rate = rate;
-  const voices = speechSynthesis.getVoices();
-  const jpVoice = voices.find(v => v.lang.startsWith('ja'));
-  if (jpVoice) u.voice = jpVoice;
-  speechSynthesis.speak(u);
+let _speakAudio = null;
+function speakJP(text) {
+  if (!text) return;
+  try {
+    if (_speakAudio) { _speakAudio.pause(); _speakAudio = null; }
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text);
+    _speakAudio = new Audio(url);
+    _speakAudio.play().catch(() => {
+      // Fallback to Web Speech API if Google TTS blocked
+      if (!window.speechSynthesis) return;
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      u.rate = 0.85;
+      const voices = speechSynthesis.getVoices();
+      const jpVoice = voices.find(v => v.lang.startsWith('ja'));
+      if (jpVoice) u.voice = jpVoice;
+      speechSynthesis.speak(u);
+    });
+  } catch(e) {
+    // Silent fallback
+    if (window.speechSynthesis) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      u.rate = 0.85;
+      speechSynthesis.speak(u);
+    }
+  }
 }
-// Pre-load voices
 if (window.speechSynthesis) speechSynthesis.getVoices();
 
 function haptic(style = 'light') {
@@ -1199,7 +1217,9 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
         {xpFloat && <div className="xp-float">+{xpFloat} XP</div>}
         <div className="study-card-inner">
           <div className="badge" style={{background:stage.color+'33', color:stage.color}}>{stage.name}</div>
-          <div className="jp kanji-large">{current.c}</div>
+          <div className="jp kanji-large" onClick={() => speakJP(current.c)}
+               style={{cursor:'pointer'}} title="לחץ להשמעה">{current.c}</div>
+          <button className="speaker-btn" onClick={() => speakJP(current.c)} title="השמע">🔊</button>
           <div style={{fontSize:12, color:'var(--text3)'}}>שבצים: {current.s} | {current.j}</div>
 
           {quizMode === 'flashcard' && !flipped && (
@@ -1220,8 +1240,9 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
                 {current.kun.length > 0 && <span className="jp" style={{color:'var(--green)'}}>訓: {current.kun.join('、')}</span>}
               </div>
               {current.v && current.v[0] && (
-                <div style={{background:'var(--bg3)', borderRadius:8, padding:10, marginTop:8}}>
-                  <div className="jp ltr" style={{fontSize:18}}>{current.v[0].w}</div>
+                <div style={{background:'var(--bg3)', borderRadius:8, padding:10, marginTop:8, cursor:'pointer'}}
+                     onClick={() => speakJP(current.v[0].w)}>
+                  <div className="jp ltr" style={{fontSize:18}}>{current.v[0].w} 🔊</div>
                   <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{current.v[0].r}</div>
                   <div style={{fontSize:13}}>{current.v[0].he}</div>
                 </div>
@@ -1345,7 +1366,9 @@ function ExplorePage({selectedLevels, srsData}) {
         <div className="modal-overlay" onClick={() => setSelected(null)}>
           <div className="modal scale-in" onClick={e => e.stopPropagation()}>
             <div style={{textAlign:'center'}}>
-              <div className="jp" style={{fontSize:72, fontWeight:900}}>{selected.c}</div>
+              <div className="jp" style={{fontSize:72, fontWeight:900, cursor:'pointer'}}
+                   onClick={() => speakJP(selected.c)} title="לחץ להשמעה">{selected.c}</div>
+              <button className="speaker-btn" onClick={() => speakJP(selected.c)} title="השמע">🔊</button>
               <div className="badge" style={{background:getStage((srsData[selected.c]||{level:0}).level).color+'33',
                    color:getStage((srsData[selected.c]||{level:0}).level).color, marginBottom:12}}>
                 {getStage((srsData[selected.c]||{level:0}).level).name}
@@ -1356,20 +1379,23 @@ function ExplorePage({selectedLevels, srsData}) {
                 {selected.on.length > 0 && (
                   <div>
                     <div style={{fontSize:11, color:'var(--text3)'}}>אוניומי</div>
-                    <div className="jp ltr" style={{color:'var(--amber)'}}>{selected.on.join('、')}</div>
+                    <div className="jp ltr" style={{color:'var(--amber)', cursor:'pointer'}}
+                         onClick={() => speakJP(selected.on.join('、'))}>{selected.on.join('、')}</div>
                   </div>
                 )}
                 {selected.kun.length > 0 && (
                   <div>
                     <div style={{fontSize:11, color:'var(--text3)'}}>קוניומי</div>
-                    <div className="jp ltr" style={{color:'var(--green)'}}>{selected.kun.join('、')}</div>
+                    <div className="jp ltr" style={{color:'var(--green)', cursor:'pointer'}}
+                         onClick={() => speakJP(selected.kun.join('、'))}>{selected.kun.join('、')}</div>
                   </div>
                 )}
               </div>
               <div style={{fontSize:13, color:'var(--text3)'}}>שבצים: {selected.s} | רמה: {selected.j}</div>
               {selected.v && selected.v[0] && (
-                <div style={{background:'var(--bg3)', borderRadius:8, padding:12, marginTop:12}}>
-                  <div style={{fontSize:12, color:'var(--text3)', marginBottom:4}}>מילה לדוגמה</div>
+                <div style={{background:'var(--bg3)', borderRadius:8, padding:12, marginTop:12, cursor:'pointer'}}
+                     onClick={() => speakJP(selected.v[0].w)}>
+                  <div style={{fontSize:12, color:'var(--text3)', marginBottom:4}}>מילה לדוגמה 🔊</div>
                   <div className="jp ltr" style={{fontSize:20}}>{selected.v[0].w}</div>
                   <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{selected.v[0].r}</div>
                   <div style={{fontSize:14}}>{selected.v[0].he} ({selected.v[0].en})</div>
