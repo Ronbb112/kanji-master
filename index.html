@@ -625,7 +625,6 @@ function playSound(type) {
 }
 
 // --- Natural Japanese TTS ---
-let _speakAudio = null;
 let _jpVoiceCache = null;
 
 function _getBestJPVoice() {
@@ -634,58 +633,36 @@ function _getBestJPVoice() {
   const voices = speechSynthesis.getVoices();
   const jpVoices = voices.filter(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
   if (jpVoices.length === 0) return null;
-  // Prefer premium/enhanced/natural voices (macOS "O-Ren", iOS "Kyoko Enhanced", etc.)
-  const premium = jpVoices.find(v => /premium|enhanced|natural|o-ren|hattori/i.test(v.name));
+  // Priority: Kyoko (most natural female), O-Ren, Hattori, then any premium voice
+  const preferred = ['kyoko', 'o-ren', 'hattori'];
+  for (const name of preferred) {
+    const v = jpVoices.find(v => v.name.toLowerCase().includes(name));
+    if (v) { _jpVoiceCache = v; return v; }
+  }
+  const premium = jpVoices.find(v => /premium|enhanced|natural/i.test(v.name));
   if (premium) { _jpVoiceCache = premium; return premium; }
-  // Prefer non-compact, non-default voices (usually higher quality)
-  const nonCompact = jpVoices.find(v => !/compact/i.test(v.name) && v.localService);
-  if (nonCompact) { _jpVoiceCache = nonCompact; return nonCompact; }
+  // Avoid novelty voices (Eddy, Flo, Grandma, etc.)
+  const normal = jpVoices.find(v => !/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley/i.test(v.name));
+  if (normal) { _jpVoiceCache = normal; return normal; }
   _jpVoiceCache = jpVoices[0];
   return jpVoices[0];
 }
 
-function _speakWithBrowserTTS(text) {
+function speakJP(text) {
+  if (!text) return;
   if (!window.speechSynthesis) return;
+  const clean = text.replace(/\./g, '');
   speechSynthesis.cancel();
   setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(clean);
     u.lang = 'ja-JP';
-    u.rate = 0.85;
+    u.rate = 0.9;
     u.pitch = 1.0;
+    u.volume = 1.0;
     const voice = _getBestJPVoice();
     if (voice) u.voice = voice;
     speechSynthesis.speak(u);
-  }, 80);
-}
-
-function speakJP(text) {
-  if (!text) return;
-  const clean = text.replace(/\./g, '');
-
-  // Stop any previous audio
-  if (_speakAudio) { _speakAudio.pause(); _speakAudio.currentTime = 0; _speakAudio = null; }
-  if (window.speechSynthesis) speechSynthesis.cancel();
-
-  // Try Google TTS first — natural human voice
-  // Use multiple endpoint patterns as fallbacks
-  const endpoints = [
-    'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean),
-    'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean)
-  ];
-
-  function tryEndpoint(idx) {
-    if (idx >= endpoints.length) {
-      // All Google endpoints failed — fall back to browser TTS
-      _speakWithBrowserTTS(clean);
-      return;
-    }
-    _speakAudio = new Audio(endpoints[idx]);
-    _speakAudio.volume = 1.0;
-    _speakAudio.onerror = () => tryEndpoint(idx + 1);
-    _speakAudio.play().catch(() => tryEndpoint(idx + 1));
-  }
-
-  tryEndpoint(0);
+  }, 100);
 }
 
 // Pre-load voices (async on some browsers)
