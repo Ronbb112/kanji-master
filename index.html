@@ -624,59 +624,59 @@ function playSound(type) {
   } catch(e) {}
 }
 
-// --- Natural Japanese TTS ---
-let _jpVoiceCache = null;
+// --- Japanese TTS ---
+let _jpVoice = null;
+let _jpVoicesLoaded = false;
 
-function _getBestJPVoice() {
-  if (_jpVoiceCache) return _jpVoiceCache;
-  if (!window.speechSynthesis) return null;
-  const voices = speechSynthesis.getVoices();
-  const jpVoices = voices.filter(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
-  if (jpVoices.length === 0) return null;
-  // Priority: Kyoko (most natural female), O-Ren, Hattori, then any premium voice
-  const preferred = ['kyoko', 'o-ren', 'hattori'];
-  for (const name of preferred) {
-    const v = jpVoices.find(v => v.name.toLowerCase().includes(name));
-    if (v) { _jpVoiceCache = v; return v; }
-  }
-  const premium = jpVoices.find(v => /premium|enhanced|natural/i.test(v.name));
-  if (premium) { _jpVoiceCache = premium; return premium; }
-  // Avoid novelty voices (Eddy, Flo, Grandma, etc.)
-  const normal = jpVoices.find(v => !/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley/i.test(v.name));
-  if (normal) { _jpVoiceCache = normal; return normal; }
-  _jpVoiceCache = jpVoices[0];
-  return jpVoices[0];
+function _initJPVoice() {
+  if (!window.speechSynthesis) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+  _jpVoicesLoaded = true;
+  const jp = voices.filter(v => /^ja/.test(v.lang));
+  if (!jp.length) return; // No Japanese voice on this device
+  // Cross-platform: premium > local service > remote (Google on Android/ChromeOS) > any
+  const novelty = /eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley/i;
+  _jpVoice =
+    jp.find(v => /premium|enhanced/i.test(v.name)) ||
+    jp.find(v => v.localService && !novelty.test(v.name)) ||
+    jp.find(v => v.localService) ||
+    jp.find(v => !novelty.test(v.name)) ||
+    jp[0];
+}
+
+if (window.speechSynthesis) {
+  _initJPVoice();
+  window.speechSynthesis.onvoiceschanged = _initJPVoice;
 }
 
 function speakJP(text) {
-  if (!text) return;
-  if (!window.speechSynthesis) return;
-  const clean = text.replace(/\./g, '');
-  // CRITICAL: speak() MUST be called first, before cancel().
-  // Chrome consumes the user-gesture token on cancel(), blocking speak().
-  const u = new SpeechSynthesisUtterance(clean);
-  u.lang = 'ja-JP';
-  u.rate = 0.9;
-  u.pitch = 1.0;
-  u.volume = 1.0;
-  const voice = _getBestJPVoice();
-  if (voice) u.voice = voice;
-  speechSynthesis.speak(u);
-  // If there were queued utterances, cancel old ones after a tick
-  // (the new one we just added survives because we re-add it)
-  if (speechSynthesis.pending) {
-    const u2 = new SpeechSynthesisUtterance(clean);
-    u2.lang = u.lang; u2.rate = u.rate; u2.pitch = u.pitch; u2.volume = u.volume;
-    if (voice) u2.voice = voice;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u2);
-  }
-}
+  if (!text || !window.speechSynthesis) return;
+  const clean = text.replace(/[。\.]/g, '').trim();
+  if (!clean) return;
+  if (!_jpVoicesLoaded) _initJPVoice();
 
-// Pre-load voices (async on some browsers)
-if (window.speechSynthesis) {
-  speechSynthesis.getVoices();
-  speechSynthesis.onvoiceschanged = () => { _jpVoiceCache = null; _getBestJPVoice(); };
+  const synth = window.speechSynthesis;
+  const wasBusy = synth.speaking || synth.pending;
+
+  const makeU = () => {
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = 'ja-JP';
+    u.rate = 0.85;
+    u.volume = 1.0;
+    if (_jpVoice) u.voice = _jpVoice;
+    u.onerror = e => console.warn('[TTS] error:', e.error, clean);
+    return u;
+  };
+
+  if (wasBusy) {
+    // Chrome: speak() first to keep user-activation alive, then cancel old speech
+    synth.speak(makeU());
+    synth.cancel();
+    synth.speak(makeU());
+  } else {
+    synth.speak(makeU());
+  }
 }
 
 function haptic(style = 'light') {
