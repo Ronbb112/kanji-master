@@ -652,8 +652,8 @@ function speakJP(text) {
   if (!text) return;
   if (!window.speechSynthesis) return;
   const clean = text.replace(/\./g, '');
-  // No setTimeout! Chrome blocks speak() outside user-gesture context
-  speechSynthesis.cancel();
+  // CRITICAL: speak() MUST be called first, before cancel().
+  // Chrome consumes the user-gesture token on cancel(), blocking speak().
   const u = new SpeechSynthesisUtterance(clean);
   u.lang = 'ja-JP';
   u.rate = 0.9;
@@ -662,6 +662,15 @@ function speakJP(text) {
   const voice = _getBestJPVoice();
   if (voice) u.voice = voice;
   speechSynthesis.speak(u);
+  // If there were queued utterances, cancel old ones after a tick
+  // (the new one we just added survives because we re-add it)
+  if (speechSynthesis.pending) {
+    const u2 = new SpeechSynthesisUtterance(clean);
+    u2.lang = u.lang; u2.rate = u.rate; u2.pitch = u.pitch; u2.volume = u.volume;
+    if (voice) u2.voice = voice;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u2);
+  }
 }
 
 // Pre-load voices (async on some browsers)
