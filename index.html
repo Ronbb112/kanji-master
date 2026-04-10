@@ -647,45 +647,45 @@ function _getBestJPVoice() {
 function _speakWithBrowserTTS(text) {
   if (!window.speechSynthesis) return;
   speechSynthesis.cancel();
-  // Small delay after cancel() - fixes known Chrome/Safari bug where speak() is ignored
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ja-JP';
     u.rate = 0.85;
-    u.pitch = 1.1;
+    u.pitch = 1.0;
     const voice = _getBestJPVoice();
     if (voice) u.voice = voice;
     speechSynthesis.speak(u);
-  }, 50);
+  }, 80);
 }
 
 function speakJP(text) {
   if (!text) return;
-  // Clean reading dots (e.g. あざ.な → あざな)
   const clean = text.replace(/\./g, '');
 
   // Stop any previous audio
   if (_speakAudio) { _speakAudio.pause(); _speakAudio.currentTime = 0; _speakAudio = null; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
 
-  // Try browser TTS first (more reliable than Google TTS which gets blocked)
-  if (window.speechSynthesis) {
-    const voices = speechSynthesis.getVoices();
-    const hasJP = voices.some(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
-    if (hasJP) {
+  // Try Google TTS first — natural human voice
+  // Use multiple endpoint patterns as fallbacks
+  const endpoints = [
+    'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean),
+    'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean)
+  ];
+
+  function tryEndpoint(idx) {
+    if (idx >= endpoints.length) {
+      // All Google endpoints failed — fall back to browser TTS
       _speakWithBrowserTTS(clean);
       return;
     }
+    _speakAudio = new Audio(endpoints[idx]);
+    _speakAudio.volume = 1.0;
+    _speakAudio.onerror = () => tryEndpoint(idx + 1);
+    _speakAudio.play().catch(() => tryEndpoint(idx + 1));
   }
 
-  // Fallback: Google TTS
-  try {
-    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=ja&q=' + encodeURIComponent(clean);
-    _speakAudio = new Audio(url);
-    _speakAudio.onerror = () => _speakWithBrowserTTS(clean);
-    _speakAudio.play().catch(() => _speakWithBrowserTTS(clean));
-  } catch(e) {
-    _speakWithBrowserTTS(clean);
-  }
+  tryEndpoint(0);
 }
 
 // Pre-load voices (async on some browsers)
