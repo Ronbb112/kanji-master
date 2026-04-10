@@ -646,22 +646,13 @@ if (window.speechSynthesis) {
 }
 
 function speakJP(text) {
-  if (!text || !window.speechSynthesis) return;
-  const clean = text.replace(/[。\.]/g, '').trim();
+  if (!text) return;
+  const clean = text.replace(/[\s\n\r]+/g, '');
   if (!clean) return;
-
-  // Build the utterance with already-loaded voice (no getVoices() here)
   const u = new SpeechSynthesisUtterance(clean);
   u.lang = 'ja-JP';
-  u.rate = 0.85;
-  u.volume = 1.0;
   if (_jpVoice) u.voice = _jpVoice;
-  u.onerror = e => console.warn('[TTS] error:', e.error, clean);
-
-  // ONLY call speak() — no cancel(), no conditionals, no async.
-  // cancel() in Chrome can consume the user-activation token and cause
-  // a 'not-allowed' error on the following speak(). Queuing is fine for
-  // single kanji (≤2 syllables finish in under a second).
+  u.rate = 0.9;
   window.speechSynthesis.speak(u);
 }
 
