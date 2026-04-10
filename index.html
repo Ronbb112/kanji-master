@@ -625,58 +625,44 @@ function playSound(type) {
 }
 
 // --- Japanese TTS ---
+// Voice loaded eagerly at startup; never touched inside a click handler
 let _jpVoice = null;
-let _jpVoicesLoaded = false;
 
-function _initJPVoice() {
+function _loadVoice() {
   if (!window.speechSynthesis) return;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return;
-  _jpVoicesLoaded = true;
   const jp = voices.filter(v => /^ja/.test(v.lang));
-  if (!jp.length) return; // No Japanese voice on this device
-  // Cross-platform: premium > local service > remote (Google on Android/ChromeOS) > any
-  const novelty = /eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley/i;
-  _jpVoice =
-    jp.find(v => /premium|enhanced/i.test(v.name)) ||
-    jp.find(v => v.localService && !novelty.test(v.name)) ||
-    jp.find(v => v.localService) ||
-    jp.find(v => !novelty.test(v.name)) ||
-    jp[0];
+  if (!jp.length) return;
+  const skip = /eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley/i;
+  _jpVoice = jp.find(v => /premium|enhanced/i.test(v.name))
+           || jp.find(v => v.localService && !skip.test(v.name))
+           || jp.find(v => v.localService)
+           || jp[0];
 }
-
 if (window.speechSynthesis) {
-  _initJPVoice();
-  window.speechSynthesis.onvoiceschanged = _initJPVoice;
+  _loadVoice();
+  window.speechSynthesis.onvoiceschanged = _loadVoice;
 }
 
 function speakJP(text) {
   if (!text || !window.speechSynthesis) return;
   const clean = text.replace(/[。\.]/g, '').trim();
   if (!clean) return;
-  if (!_jpVoicesLoaded) _initJPVoice();
 
-  const synth = window.speechSynthesis;
-  const wasBusy = synth.speaking || synth.pending;
+  // Build the utterance with already-loaded voice (no getVoices() here)
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = 'ja-JP';
+  u.rate = 0.85;
+  u.volume = 1.0;
+  if (_jpVoice) u.voice = _jpVoice;
+  u.onerror = e => console.warn('[TTS] error:', e.error, clean);
 
-  const makeU = () => {
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = 'ja-JP';
-    u.rate = 0.85;
-    u.volume = 1.0;
-    if (_jpVoice) u.voice = _jpVoice;
-    u.onerror = e => console.warn('[TTS] error:', e.error, clean);
-    return u;
-  };
-
-  if (wasBusy) {
-    // Chrome: speak() first to keep user-activation alive, then cancel old speech
-    synth.speak(makeU());
-    synth.cancel();
-    synth.speak(makeU());
-  } else {
-    synth.speak(makeU());
-  }
+  // ONLY call speak() — no cancel(), no conditionals, no async.
+  // cancel() in Chrome can consume the user-activation token and cause
+  // a 'not-allowed' error on the following speak(). Queuing is fine for
+  // single kanji (≤2 syllables finish in under a second).
+  window.speechSynthesis.speak(u);
 }
 
 function haptic(style = 'light') {
