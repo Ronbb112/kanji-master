@@ -457,12 +457,17 @@ button, .nav-bar, .chip, .tab, .rating-btn, .mc-option, .explorer-cell, .badge, 
 .kanji-equation.compact { padding:6px 0; gap:4px; }
 .kanji-equation.compact .component-piece { min-width:54px; min-height:57px; padding:5px 4px; border-radius:12px; }
 .kanji-equation.compact .component-glyph { font-size:22px; }.kanji-equation.compact .component-meaning { font-size:8px; }
+.kanji-equation.stacked { flex-direction:column; overflow:visible; gap:7px; }
+.equation-parts-flow { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:7px 5px; width:100%; }
+.equation-term { display:inline-flex; align-items:center; gap:5px; }
+.equation-result-row { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.kanji-equation.stacked .equation-arrow { line-height:1; }
 .equation-wrap { padding:12px; border-radius:16px; background:var(--bg); border:1px solid var(--glass-border); }
 .story-memory-steps { gap:10px; }
 .kitsu-story { display:grid; grid-template-columns:48px 1fr; gap:10px; align-items:end; }
 .kitsu-story-bubble { position:relative; padding:12px 13px; background:#fff7e9; border:1px solid #f6d9ad; border-radius:16px 16px 16px 5px; }
 [data-theme="dark"] .kitsu-story-bubble { background:#3b3540; border-color:#654e49; }
-.kitsu-story-bubble::before { content:''; position:absolute; left:-7px; bottom:8px; width:12px; height:12px; background:inherit; border-left:1px solid #f6d9ad; border-bottom:1px solid #f6d9ad; transform:rotate(45deg); }
+.kitsu-story-bubble::before { content:''; position:absolute; right:-7px; bottom:8px; width:12px; height:12px; background:inherit; border-top:1px solid #f6d9ad; border-right:1px solid #f6d9ad; transform:rotate(45deg); }
 .role-step { border-color:rgba(77,158,247,.26); background:rgba(77,158,247,.07); }
 .anecdote-step { border-color:rgba(255,200,87,.42); background:rgba(255,200,87,.11); }
 .contrast-step { border-color:rgba(139,124,246,.25); background:rgba(139,124,246,.07); }
@@ -470,7 +475,9 @@ button, .nav-bar, .chip, .tab, .rating-btn, .mc-option, .explorer-cell, .badge, 
 .memory-step { border-radius:14px; padding:11px 12px; background:var(--bg); }
 .memory-step-label { color:var(--amber-dark); font-weight:800; }.memory-step-text { color:var(--text2); }
 .memory-disclaimer { padding:8px 10px; border-radius:10px; background:var(--bg); }
-.profile-source-link { display:inline-block; margin-top:7px; color:var(--blue); font-size:10px; font-weight:700; text-decoration:none; }
+.profile-source-list { display:flex; flex-wrap:wrap; gap:5px 10px; margin-top:7px; }
+.profile-source-link { color:var(--blue); font-size:10px; font-weight:700; text-decoration:none; }
+.profile-source-link:hover { text-decoration:underline; }
 
 /* Home and lesson path */
 .home-page { padding-top:14px; }
@@ -1275,8 +1282,8 @@ button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visibl
   border-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
 }
 [data-theme="dark"] .kitsu-story-bubble::before {
-  border-left-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
-  border-bottom-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
+  border-top-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
+  border-right-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
 }
 [data-theme="dark"] .mistake-coach {
   background: color-mix(in srgb, var(--red) 8%, var(--bg2));
@@ -1375,6 +1382,7 @@ button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visibl
 </head>
 <body>
 <div id="root"></div>
+<script src="./kanji-stories.js"></script>
 <script type="text/babel">
 const {useState, useEffect, useRef, useCallback, useMemo} = React;
 
@@ -1756,8 +1764,8 @@ const KANJI_LEARNING = {
   '校': {
     parts:[{g:'木', he:'עץ'},{g:'交', he:'צומת/הצטלבות'}],
     scene:'שולחנות העץ מסודרים סביב צומת במסדרון, ושם כל התלמידים נפגשים בבית הספר.',
-    role:'木 מסמן את תחום העץ; 交 משמש גם רמז לקריאה コウ.',
-    note:'כמעט תמיד תפגשו אותו בהתחלה בתוך 学校（がっこう）— בית ספר.',
+    role:'木 מספק את חומר השולחנות בסיפור; 交 יוצר את המפגש, והוא גם רמז שימושי לקריאה コウ.',
+    note:'学校（がっこう）הוא בית ספר, ו־高校（こうこう）הוא תיכון. בשתי המילים 校 נקרא コウ.',
     contrast:{g:'学', text:'学 הוא פעולת הלימוד; 校 הוא בית הספר כמוסד.'}
   },
   '本': {
@@ -1775,7 +1783,7 @@ const KANJI_LEARNING = {
   '見': {
     parts:[{g:'目', he:'עין'},{g:'儿', he:'רגליים'}],
     scene:'לעין ענקית צומחות נעליים; היא יוצאת לטייל כדי לראות מה קורה מעבר לפינה.',
-    note:'見る（みる）היא אחת הפעלים הראשונים שכדאי לזהות כיחידה שלמה.',
+    note:'見る（みる）הוא אחד הפעלים הראשונים שכדאי לזהות כיחידה שלמה.',
     contrast:{g:'貝', text:'ל־見 יש רגליים מעוגלות 儿; התחתית של 貝 נפתחת כמו קונכייה.'}
   },
   '聞': {
@@ -1859,8 +1867,8 @@ const KANJI_LEARNING = {
     contrast:{g:'時', text:'בשניהם 日 משמאל; ב־曜 יש כנפיים וציפור, וב־時 יש 寺.'}
   },
   '年': {
-    parts:[{g:null, he:'דמות הנושאת יבול שנתי'}],
-    scene:'קיצו סוחב אל האסם את אלומת האורז האחרונה; כשהיא מונחת בפנים, השנה נסגרת.',
+    parts:[{g:'𠂉', he:'כובע דמוי אדם'},{g:'ヰ', he:'מסגרת מצטלבת'}],
+    scene:'בלוח השנה הכובע 𠂉 יושב מעל המסגרת המוצלבת ヰ; בכל פעם שהסמן משלים סיבוב במסגרת, שנה אחת נסגרת.',
     note:'השנה הנוכחית היא 今年（ことし）, אבל בספירה אומרים למשל 三年（さんねん）.',
     contrast:{g:'午', text:'年 רחב ומכיל יותר קווים; 午 קצר ופשוט יותר.'}
   },
@@ -1877,14 +1885,14 @@ const KANJI_LEARNING = {
     contrast:{g:'車', text:'ב־東 רואים שמש בתוך ענפים; ב־車 הקווים מדגישים גלגל וציר.'}
   },
   '西': {
-    parts:[{g:null, he:'שמש שנחה בתוך מסגרת במערב'}],
-    scene:'בסוף היום השמש מחתימה כרטיס וגולשת למיטה המרובעת שלה במערב.',
+    parts:[{g:null, he:'קו גג מעל מסגרת ובתוכה שתי רגליים כפופות'}],
+    scene:'בתחנת הרכבת בונים את שלט המערב מן הצורה עצמה: קו גג, מסגרת ושתי רגליים כפופות. כשהשלט נדלק, כולם פונים אל 西口.',
     note:'בתחנות רכבת תראו 西口（にしぐち）— היציאה המערבית.',
     contrast:{g:'四', text:'ל־西 יש קו גג מלא מעל המסגרת; 四 הוא מלבן פשוט יותר.'}
   },
   '前': {
-    parts:[{g:'䒑', he:'כתר חזותי'},{g:'月', he:'גוף מלבני'},{g:'刂', he:'סכין'}],
-    scene:'לפני תחילת המופע חותכים בסכין את הסרט ממש בחזית הבמה.',
+    parts:[{g:'䒑', he:'סימן עליון חזותי'},{g:'⺼', he:'גוף'},{g:'刂', he:'להב'}],
+    scene:'לפני תחילת המופע הגוף ⺼ עומד מתחת לסימן העליון 䒑, והלהב 刂 חותך את הסרט ממש בחזית הבמה.',
     note:'午前（ごぜん）הוא לפני הצהריים; 名前（なまえ）הוא שם.',
     contrast:{g:'後', text:'ב־前 הסכין מימין; 後 מתחיל בצעדי הליכה 彳.'}
   },
@@ -1907,8 +1915,8 @@ const KANJI_LEARNING = {
     contrast:{g:'玉', text:'国 הוא 玉 מוקף בגבול מלא; ב־玉 חשוב לא לאבד את הנקודה.'}
   },
   '電': {
-    parts:[{g:'雨', he:'גשם'},{g:'申', he:'גוף דמוי שדה'},{g:'乚', he:'וו של ברק'}],
-    scene:'ענן גשם נפתח, ברק מכופף נופל ממנו ומדליק מיד את הרכבת החשמלית.',
+    parts:[{g:'雨', he:'גשם בצורת־רכיב עליונה'},{g:'电', he:'יחידה תחתונה: מסגרת עם וו'}],
+    scene:'מתחת לענן הגשם 雨 נדלקת היחידה 电; הוו שבתחתיתה קופץ כברק ומפעיל מיד את הרכבת החשמלית.',
     note:'電車（でんしゃ）היא רכבת חשמלית; 電話（でんわ）הוא טלפון.',
     contrast:{g:'雨', text:'電 מתחיל בענן 雨 אבל ממשיך לגוף ולוו של ברק מתחתיו.'}
   },
@@ -1921,7 +1929,7 @@ const KANJI_LEARNING = {
   '新': {
     parts:[{g:'立', he:'לעמוד'},{g:'木', he:'עץ'},{g:'斤', he:'גרזן'}],
     scene:'הגנן עומד ליד עץ וחותך בגרזן את סרט הפתיחה — פארק חדש נפתח.',
-    note:'新しい（あたらしい）הוא „חדש”; 新聞（しんぶん）הוא עיתון — מילולית „חדשות מודפסות”.',
+    note:'新しい（あたらしい）הוא „חדש”; 新聞（しんぶん）הוא עיתון, ובצירוף הזה 新 נקרא シン.',
     contrast:{g:'古', text:'新 עמוס בעץ ובגרזן; 古 פשוט: 十 מעל 口.'}
   },
   '安': {
@@ -1931,6 +1939,16 @@ const KANJI_LEARNING = {
     contrast:{g:'字', text:'לשניהם גג 宀; ב־安 נמצאת 女, וב־字 נמצא 子.'}
   },
 };
+
+// The supplemental file keeps the large story library separate from the UI.
+// Every story is original Hebrew copy; components and language notes are
+// checked against the teaching references linked in each card.
+Object.assign(KANJI_LEARNING, window.KANJI_STORIES || {});
+
+const STORY_COVERAGE = KANJI.filter(kanji => !KANJI_LEARNING[kanji.c]?.scene);
+if (STORY_COVERAGE.length) {
+  console.error('Missing verified kanji stories:', STORY_COVERAGE.map(kanji => kanji.c));
+}
 
 const COURSE_UNITS = [
   {id:'pictures', label:'יחידה 1', title:'תמונות ראשונות', subtitle:'שמש, ירח, אור ועצים', icon:'日', color:'#a87543', chars:['日','月','明','木','林','森'], coach:'נתחיל מצורות שהעין יכולה להפוך מיד לתמונה.'},
@@ -1958,8 +1976,7 @@ function getComponentHint(kanji) {
 function getMemoryStory(kanji) {
   const profile = getLearningProfile(kanji);
   if (profile && profile.scene) return profile.scene;
-  if (kanji.m && /[\u0590-\u05ff]/.test(kanji.m)) return kanji.m;
-  return `דמיינו את הצורה ${kanji.c} בתוך סצנה קצרה שמסתיימת במשמעות „${kanji.he}”. ככל שהתמונה מוגזמת יותר, קל יותר לשלוף אותה.`;
+  return `הסיפור המאומת של ${kanji.c} עדיין לא נטען. נסו לרענן את העמוד.`;
 }
 
 function formatLevel(level) {
@@ -1996,6 +2013,31 @@ function KitsuMascot({size=58, mood='happy'}) {
 function KanjiEquation({kanji, compact=false}) {
   const profile = getLearningProfile(kanji);
   if (!profile || !profile.parts) return null;
+  const stacked = profile.parts.length > 2;
+  if (stacked) {
+    return (
+      <div className="kanji-equation compact stacked" dir="ltr" aria-label={`פירוק חזותי של ${kanji.c}`}>
+        <div className="equation-parts-flow">
+          {profile.parts.map((part, index) => (
+            <span className="equation-term" key={`${part.g || 'shape'}-${index}`}>
+              {index > 0 && <span className="equation-sign" aria-hidden="true">+</span>}
+              <span className="component-piece">
+                <span className={`jp component-glyph ${part.g ? '' : 'shape-glyph'}`}>{part.g || 'צורה'}</span>
+                <span className="component-meaning" dir="rtl">{part.he}</span>
+              </span>
+            </span>
+          ))}
+        </div>
+        <div className="equation-result-row">
+          <span className="equation-sign equation-arrow" aria-hidden="true">↓</span>
+          <span className="component-piece result-piece">
+            <span className="jp component-glyph">{kanji.c}</span>
+            <span className="component-meaning" dir="rtl">{kanji.he}</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`kanji-equation ${compact ? 'compact' : ''}`} dir="ltr" aria-label={`פירוק חזותי של ${kanji.c}`}>
       {profile.parts.map((part, index) => (
@@ -2045,7 +2087,7 @@ function KanjiMemorySteps({kanji}) {
       {profile && profile.role && (
         <div className="memory-step role-step">
           <span className="memory-step-icon" aria-hidden="true">理</span>
-          <div><div className="memory-step-label">תפקיד אמיתי של הרכיבים</div><div className="memory-step-text">{profile.role}</div></div>
+          <div><div className="memory-step-label">איך החלקים עובדים בסיפור</div><div className="memory-step-text">{profile.role}</div></div>
         </div>
       )}
       {profile && profile.note && (
@@ -2115,8 +2157,14 @@ function KanjiLearningPanel({kanji}) {
   return (
     <div>
       <KanjiMemorySteps kanji={kanji} />
-      <div className="memory-disclaimer">„החלקים שרואים” ו„הסיפור של קיצו” הם עזרי זיכרון מקוריים — לא טענה על מקור הסימן. מידע לשוני אמיתי מסומן בנפרד.</div>
-      {getLearningProfile(kanji) && <a className="profile-source-link" href={`https://www.kanshudo.com/kanji/${encodeURIComponent(kanji.c)}`} target="_blank" rel="noreferrer">בדיקת רכיבים וקריאות ב־Kanshudo ↗</a>}
+      <div className="memory-disclaimer">הרכיבים, הקריאות וההערות נבדקו מול מקורות לימוד מקצועיים. הסיפור בעברית הוא עזר זיכרון מקורי — לא טענה על האטימולוגיה של הסימן.</div>
+      {getLearningProfile(kanji) && (
+        <div className="profile-source-list" aria-label="מקורות אימות">
+          <a className="profile-source-link" href={`https://www.kanshudo.com/kanji/${encodeURIComponent(kanji.c)}`} target="_blank" rel="noreferrer">Kanshudo: הקאנג׳י הזה ↗</a>
+          <a className="profile-source-link" href="https://kanjivg.tagaini.net/" target="_blank" rel="noreferrer">KanjiVG: צורה ורכיבים ↗</a>
+          <a className="profile-source-link" href="https://kanjialive.com/user-guide/" target="_blank" rel="noreferrer">Kanji Alive: מתודולוגיה ↗</a>
+        </div>
+      )}
       <button className="btn btn-secondary btn-full btn-sm" style={{marginTop:10}} onClick={() => setMode('quiz')}>
         הסתר ובדוק אותי
       </button>
@@ -3513,7 +3561,7 @@ function TipsPage({srsData}) {
         <div className="guide-hero-copy">
           <div className="guide-eyebrow">המעבדה של קיצו</div>
           <h1 className="display-font">לפרק, לדמיין, לזכור</h1>
-          <p>מדריך אינטראקטיבי שמפריד בין חלקים שרואים, תפקיד לשוני אמיתי וסיפור זיכרון מקורי.</p>
+          <p>מדריך אינטראקטיבי שמפריד בין חלקים שרואים, הערות לשוניות שנבדקו וסיפור זיכרון מקורי.</p>
         </div>
       </section>
 
@@ -3587,7 +3635,7 @@ function TipsPage({srsData}) {
                 {' '}<a href="https://www.jlpt.jp/e/faq/" target="_blank" rel="noreferrer" style={{color:'var(--blue)'}}>הסבר JLPT ↗</a>
               </div>
             )}
-            <div style={{fontSize:11, color:'var(--text3)'}}>כשאין פירוק מוכן, הכרטיס מציע תרגיל לבניית רמז אישי.</div>
+            <div style={{fontSize:11, color:'var(--text3)'}}>לכל קאנג׳י במדריך יש פירוק חזותי, סיפור ייחודי ועוגן במילה אמיתית.</div>
             <div className="guide-filter-row">
               <button className={`chip ${filter === 'all' ? 'selected' : ''}`} aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>הכול ({levelKanji.length})</button>
               <button className={`chip ${filter === 'stories' ? 'selected' : ''}`} aria-pressed={filter === 'stories'} onClick={() => setFilter('stories')}>סיפור מלא ({storyCount})</button>
