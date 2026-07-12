@@ -9,8 +9,9 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Sans+Hebrew:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<meta name="theme-color" content="#f6f9ff" />
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+Hebrew:wght@600;700&family=Shippori+Mincho:wght@700;800&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231b2c34'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-size='38' fill='%23f3f5f2'%3E道%3C/text%3E%3C/svg%3E" />
+<meta name="theme-color" content="#f3f5f2" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <style>
@@ -560,6 +561,816 @@ button, .nav-bar, .chip, .tab, .rating-btn, .mc-option, .explorer-cell, .badge, 
   .path-copy { padding:9px 8px; }.path-copy strong { font-size:11px; }.path-copy > span:not(.unit-meter) { display:none; }
   .component-piece { min-width:58px; }.component-meaning { max-width:68px; }
 }
+
+/* === AIZOME INK ATELIER / PREMIUM SYSTEM === */
+:root {
+  color-scheme: light;
+  --bg: #f3f5f2;
+  --bg2: #fefffc;
+  --bg3: #e6eae6;
+  --bg4: #d2d9d4;
+  --amber: #b84d40;
+  --amber-light: #c96050;
+  --amber-dark: #8e382f;
+  --green: #527a69;
+  --red: #b94850;
+  --orange: #a87543;
+  --blue: #31586b;
+  --purple: #6b648e;
+  --sun: #b79561;
+  --coral: #a85447;
+  --ink: #1b2c34;
+  --text: #1b2c34;
+  --text2: #58676a;
+  --text3: #647375;
+  --brand: #244653;
+  --brand-deep: #182f38;
+  --paper: #fefffc;
+  --frame: #13232b;
+  --glass: rgba(254,255,252,.92);
+  --glass-border: rgba(27,44,52,.11);
+  --radius: 18px;
+  --shadow: 0 1px 0 rgba(255,255,255,.8), 0 15px 36px -28px rgba(20,37,44,.5);
+  --glow-amber: 0 1px 0 rgba(255,255,255,.8), 0 16px 36px -24px rgba(197,83,69,.38);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1e27;
+  --bg2: #172a33;
+  --bg3: #223740;
+  --bg4: #314952;
+  --amber: #d87563;
+  --amber-light: #e38a77;
+  --amber-dark: #b85b4c;
+  --green: #78a08e;
+  --red: #df7780;
+  --orange: #c49561;
+  --blue: #7fa8b8;
+  --purple: #aaa0c7;
+  --sun: #ccb17d;
+  --coral: #cf7767;
+  --ink: #edf3ef;
+  --text: #edf3ef;
+  --text2: #b7c4c0;
+  --text3: #9baca8;
+  --brand: #315c69;
+  --brand-deep: #244653;
+  --paper: #172a33;
+  --frame: #09141a;
+  --glass: rgba(23,42,51,.94);
+  --glass-border: rgba(220,232,226,.12);
+  --shadow: 0 1px 0 rgba(255,255,255,.035), 0 18px 38px -26px rgba(0,0,0,.72);
+  --glow-amber: 0 1px 0 rgba(255,255,255,.04), 0 18px 38px -24px rgba(216,117,99,.25);
+}
+
+html { background: var(--frame); }
+body {
+  font-family: 'Heebo', 'Noto Sans Hebrew', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -.012em;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(125,154,158,.22), transparent 34rem),
+    linear-gradient(145deg, #12242d, #09171e 68%);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image:
+    linear-gradient(105deg, transparent 0 48%, rgba(255,255,255,.035) 49%, transparent 50%),
+    linear-gradient(18deg, transparent 0 72%, rgba(255,255,255,.025) 73%, transparent 74%);
+  background-size: 190px 150px, 260px 210px;
+}
+#root {
+  max-width: 560px;
+  min-height: 100dvh;
+  padding-bottom: 92px;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(90deg, transparent 0 49.85%, rgba(49,88,107,.018) 50%, transparent 50.15%),
+    repeating-linear-gradient(8deg, transparent 0 15px, rgba(27,44,52,.012) 16px, transparent 17px);
+  border-inline: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 0 80px rgba(0,0,0,.34);
+  isolation: isolate;
+}
+[data-theme="dark"] #root {
+  background-image:
+    linear-gradient(90deg, transparent 0 49.85%, rgba(237,243,239,.018) 50%, transparent 50.15%),
+    repeating-linear-gradient(8deg, transparent 0 15px, rgba(237,243,239,.012) 16px, transparent 17px);
+}
+
+::selection { color: #fff; background: var(--amber); }
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border: 2px solid var(--bg); border-radius: 10px; }
+.display-font,
+.page-title,
+.section-heading h2,
+.quiz-setup-title,
+.lesson-setup-hero h1,
+.lesson-done h1,
+.guide-hero h1 {
+  font-family: 'Noto Serif Hebrew', 'Noto Sans Hebrew', serif;
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+.jp { font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0; }
+.guide-watermark { font-family: 'Shippori Mincho', 'Noto Sans JP', serif; }
+button, input, select, textarea { letter-spacing: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--amber) 54%, transparent);
+  outline-offset: 3px;
+}
+
+/* App chrome */
+.top-bar {
+  min-height: 66px;
+  padding: calc(9px + env(safe-area-inset-top, 0px)) 13px 9px;
+  background: color-mix(in srgb, var(--bg2) 86%, transparent);
+  border-bottom: 0;
+  box-shadow: 0 10px 32px -28px rgba(14,31,39,.72);
+  backdrop-filter: blur(24px) saturate(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+}
+.top-bar::after {
+  content: '';
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border) 18% 82%, transparent);
+}
+.brand-lockup { gap: 8px; }
+.brand-lockup strong {
+  font-family: 'Noto Serif Hebrew', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+.brand-lockup small { margin-top: 4px; color: var(--text3); font-size: 9px; letter-spacing: .05em; }
+.kitsu-avatar { filter: drop-shadow(0 5px 8px rgba(27,44,52,.12)); }
+.top-status { gap: 6px; }
+.status-pill {
+  min-height: 31px;
+  gap: 5px;
+  padding: 4px 9px;
+  color: var(--text2);
+  background: color-mix(in srgb, var(--bg2) 72%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  font: 600 11px 'Heebo','Noto Sans Hebrew',sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.status-mark { color: var(--amber); font-size: 9px; font-weight: 800; letter-spacing: .04em; }
+.streak-pill, .xp-pill, .timer-pill { color: var(--text2); }
+.top-actions { gap: 5px; }
+.icon-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  color: var(--text2);
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  font-size: 16px;
+  font-weight: 600;
+}
+.icon-button:hover { color: var(--text); background: var(--bg3); }
+.icon-button:active { transform: scale(.94); }
+.settings-button { font-size: 22px; line-height: 1; padding-bottom: 8px; }
+
+.nav-bar {
+  max-width: 560px;
+  gap: 5px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -18px 36px -28px rgba(16,34,42,.65);
+  backdrop-filter: blur(24px) saturate(1.12);
+  -webkit-backdrop-filter: blur(24px) saturate(1.12);
+}
+.nav-btn {
+  min-height: 60px;
+  padding: 5px 3px;
+  gap: 3px;
+  border-radius: 16px;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 600;
+}
+.nav-btn .nav-icon {
+  width: 31px;
+  height: 31px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  font-family: 'Shippori Mincho', 'Noto Sans JP', serif;
+  font-size: 18px;
+  font-weight: 700;
+  transition: color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.nav-btn.active { color: var(--amber); background: transparent; }
+.nav-btn.active .nav-icon {
+  color: #fff;
+  background: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 80%, #fff);
+  box-shadow: 0 7px 18px -9px color-mix(in srgb, var(--amber) 72%, transparent);
+  transform: rotate(-2deg) translateY(-1px);
+}
+
+/* Surfaces and controls */
+.page { padding: 22px 20px 26px; }
+.page-title { margin-bottom: 18px; font-size: 30px; line-height: 1.15; color: var(--text); }
+.card {
+  padding: 20px;
+  margin-bottom: 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: var(--bg2);
+  box-shadow: var(--shadow);
+}
+.card-glow { border-color: color-mix(in srgb, var(--amber) 26%, var(--glass-border)); box-shadow: var(--glow-amber); }
+.btn {
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  box-shadow: 0 10px 24px -16px rgba(16,45,56,.9), inset 0 1px rgba(255,255,255,.14);
+}
+.btn-primary:hover { background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 90%, #fff), var(--brand-deep)); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(1px) scale(.99); box-shadow: 0 5px 12px -10px rgba(16,45,56,.9), inset 0 1px rgba(255,255,255,.1); }
+.btn-primary:disabled { color: var(--text3); background: var(--bg3); border: 1px solid var(--glass-border); box-shadow: none; }
+.btn-secondary {
+  color: var(--text2);
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 7px 18px -18px rgba(27,44,52,.6);
+}
+.btn-secondary:hover { color: var(--text); background: var(--bg); border-color: color-mix(in srgb, var(--text) 18%, transparent); }
+.btn-secondary:active { transform: translateY(1px); box-shadow: none; }
+.btn-sm { min-height: 42px; padding: 9px 15px; font-size: 13px; }
+.chip {
+  min-height: 44px;
+  padding: 9px 13px;
+  color: var(--text2);
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.chip:hover { color: var(--text); border-color: color-mix(in srgb, var(--amber) 40%, var(--glass-border)); }
+.chip.selected {
+  color: var(--amber-dark);
+  background: color-mix(in srgb, var(--amber) 9%, var(--bg2));
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--glass-border));
+  box-shadow: inset 0 -2px color-mix(in srgb, var(--amber) 24%, transparent);
+}
+[data-theme="dark"] .chip.selected { color: var(--amber-light); }
+.tabs { gap: 7px; margin-bottom: 14px; }
+.tab {
+  min-height: 42px;
+  padding: 9px 13px;
+  color: var(--text2);
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: 11px;
+  font-weight: 600;
+}
+.tab.active { color: #fff; background: var(--brand); border-color: var(--brand); box-shadow: 0 8px 18px -13px rgba(27,72,88,.8); }
+.search-box, .typing-input {
+  min-height: 50px;
+  padding: 12px 15px;
+  color: var(--text);
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 13px;
+  box-shadow: inset 0 1px 2px rgba(27,44,52,.035);
+}
+.search-box:focus, .typing-input:focus { border-color: color-mix(in srgb, var(--blue) 60%, var(--glass-border)); outline: 3px solid color-mix(in srgb, var(--blue) 18%, transparent); }
+.search-box::placeholder, .typing-input::placeholder { color: var(--text3); opacity: .9; }
+.progress-bar { height: 7px; background: var(--bg3); border: 0; border-radius: 99px; }
+.progress-fill { background: var(--amber); border-radius: inherit; }
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 10px; letter-spacing: .02em; }
+
+/* Home thesis */
+.home-page { padding-top: 18px; }
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid rgba(49,88,107,.16);
+  border-radius: 25px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--bg2) 96%, var(--blue)), var(--bg2) 58%),
+    var(--bg2);
+  box-shadow: 0 24px 54px -38px rgba(18,43,53,.7), 0 1px 0 rgba(255,255,255,.72);
+}
+.home-hero::before {
+  content: '道';
+  position: absolute;
+  inset-inline-start: -22px;
+  bottom: -48px;
+  z-index: -1;
+  color: color-mix(in srgb, var(--blue) 7%, transparent);
+  font: 800 210px/1 'Shippori Mincho','Noto Sans JP',serif;
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+.home-hero::after {
+  content: '学';
+  position: absolute;
+  inset-inline-start: 22px;
+  top: 20px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--amber);
+  border: 1px solid color-mix(in srgb, var(--amber) 74%, transparent);
+  border-radius: 5px;
+  font: 700 19px 'Shippori Mincho','Noto Sans JP',serif;
+  transform: rotate(-5deg);
+  opacity: .8;
+}
+.hero-coach-row { position: relative; z-index: 1; grid-template-columns: 72px 1fr; gap: 15px; }
+.coach-name, .section-kicker, .guide-eyebrow {
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .065em;
+}
+.coach-speech h1 { margin: 5px 0 8px; font-size: 29px; line-height: 1.18; }
+.coach-speech p { color: var(--text2); font-size: 13px; line-height: 1.65; }
+.hero-equation {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0 16px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+}
+.hero-equation-label { color: var(--blue); font-size: 10px; letter-spacing: .04em; }
+.kanji-equation { gap: 7px; }
+.component-piece {
+  min-width: 64px;
+  min-height: 68px;
+  color: var(--text);
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 9px 18px -18px rgba(27,44,52,.65);
+}
+.component-glyph { font-family: 'Noto Sans JP', sans-serif; font-size: 28px; }
+.component-glyph.shape-glyph { font-family: 'Heebo','Noto Sans Hebrew',sans-serif; color: var(--purple); }
+.component-meaning { color: var(--text2); font-size: 9px; }
+.result-piece {
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 7%, var(--bg2));
+  border-color: color-mix(in srgb, var(--amber) 42%, var(--glass-border));
+  box-shadow: 0 9px 18px -18px rgba(197,83,69,.8);
+}
+.result-piece .component-glyph { color: var(--amber); }
+.equation-arrow { color: var(--amber); }
+.daily-goal-row { position: relative; z-index: 1; grid-template-columns: 112px 1fr; gap: 14px; margin: 15px 0; }
+.daily-progress-copy strong { font: 700 14px 'Heebo','Noto Sans Hebrew',sans-serif; }
+.daily-progress-copy span { margin-top: 2px; color: var(--text3); font-size: 10px; }
+.daily-track { height: 7px; background: var(--bg3); border: 0; }
+.daily-track span { background: linear-gradient(90deg, var(--amber), color-mix(in srgb, var(--amber) 78%, var(--sun))); }
+.hero-cta { position: relative; z-index: 1; justify-content: space-between; font-size: 15px; }
+.hero-cta span:last-child { color: color-mix(in srgb, #fff 74%, var(--sun)); font-size: 18px; }
+
+.daily-review {
+  grid-template-columns: 42px 1fr auto;
+  gap: 12px;
+  margin: 17px 0 24px;
+  padding: 13px 14px;
+  background: color-mix(in srgb, var(--bg2) 76%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  box-shadow: none;
+}
+.review-icon {
+  width: 38px;
+  height: 38px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--bg2));
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--glass-border));
+  border-radius: 50%;
+  font-size: 20px;
+}
+.all-clear .review-icon { color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--bg2)); }
+.review-copy strong { font-size: 13px; font-weight: 700; }
+.review-copy span { color: var(--text3); font-size: 10px; }
+.review-action { min-height: 38px; color: var(--blue); background: transparent; border: 1px solid color-mix(in srgb, var(--blue) 25%, var(--glass-border)); border-radius: 999px; }
+.review-action:disabled { color: var(--green); background: transparent; border-color: color-mix(in srgb, var(--green) 25%, var(--glass-border)); }
+
+/* The living ink trail */
+.path-section { margin-top: 24px; }
+.section-heading { align-items: end; margin-bottom: 12px; }
+.section-heading h2 { margin-top: 2px; font-size: 30px; line-height: 1.1; }
+.section-heading button { color: var(--blue); font-size: 11px; font-weight: 700; }
+.lesson-path { padding: 4px 0 14px; }
+.lesson-path::before {
+  top: 28px;
+  bottom: 40px;
+  width: 6px;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--blue) 42%, var(--bg4)) 5% 94%, transparent);
+  opacity: .82;
+  clip-path: polygon(28% 0,100% 6%,52% 14%,91% 24%,37% 34%,83% 45%,42% 56%,96% 68%,31% 79%,76% 91%,48% 100%,0 100%,24% 88%,8% 75%,32% 61%,3% 48%,28% 35%,0 21%,24% 9%,0 0);
+}
+[data-theme="dark"] .lesson-path::before { background: linear-gradient(to bottom, transparent, rgba(127,168,184,.38) 5% 94%, transparent); }
+.path-unit { min-height: 132px; grid-template-columns: 1fr 88px 1fr; }
+.path-unit .path-node {
+  width: 68px;
+  height: 68px;
+  color: var(--unit-color);
+  background: var(--bg2);
+  border: 1px solid color-mix(in srgb, var(--unit-color) 52%, var(--glass-border));
+  border-radius: 20px;
+  box-shadow: 0 15px 28px -21px color-mix(in srgb, var(--unit-color) 70%, transparent), inset 0 0 0 5px var(--bg2);
+}
+.path-unit:nth-child(odd) .path-node { transform: translateX(-17px) rotate(-3deg); }
+.path-unit:nth-child(even) .path-node { transform: translateX(17px) rotate(3deg); }
+.path-unit:hover .path-node { transform: translateX(0) translateY(-2px) rotate(0); }
+.node-kanji { font-family: 'Shippori Mincho','Noto Sans JP',serif; font-size: 31px; font-weight: 700; }
+.node-play {
+  right: -5px;
+  bottom: -5px;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  background: var(--amber);
+  border: 3px solid var(--bg2);
+  font-size: 8px;
+}
+.path-copy {
+  gap: 2px;
+  padding: 11px 12px;
+  background: color-mix(in srgb, var(--bg2) 82%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 13px;
+  box-shadow: 0 12px 24px -24px rgba(27,44,52,.7);
+}
+.path-copy small { color: color-mix(in srgb, var(--unit-color) 72%, var(--text)); font-size: 9px; letter-spacing: .035em; }
+.path-copy strong { font-size: 13px; }
+.path-copy > span:not(.unit-meter) { color: var(--text3); font-size: 9px; }
+.unit-meter { height: 4px; margin-top: 6px; background: var(--bg3); }
+.path-unit.upcoming { opacity: .82; }
+.path-unit.current { opacity: 1; }
+.path-unit.current .path-node {
+  color: #fff;
+  background: var(--unit-color);
+  border-color: color-mix(in srgb, var(--unit-color) 78%, #fff);
+  outline: 1px solid color-mix(in srgb, var(--unit-color) 38%, transparent);
+  outline-offset: 7px;
+  animation: inkBloom 2.8s ease-in-out infinite;
+}
+.path-unit.completed .path-node { color: #fff; background: var(--amber); border-color: var(--amber); }
+.path-unit.completed .node-kanji { font-family: 'Heebo','Noto Sans Hebrew',sans-serif; }
+@keyframes inkBloom {
+  0%,100% { box-shadow: 0 15px 28px -21px color-mix(in srgb,var(--unit-color) 72%,transparent), inset 0 0 0 5px rgba(255,255,255,.1); }
+  50% { box-shadow: 0 18px 34px -17px color-mix(in srgb,var(--unit-color) 88%,transparent), inset 0 0 0 5px rgba(255,255,255,.16); }
+}
+.level-panel {
+  margin: 8px 0 15px;
+  background: color-mix(in srgb, var(--bg2) 80%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  box-shadow: none;
+}
+.level-panel summary { padding: 16px; font-size: 13px; }
+.level-panel summary::before { color: var(--amber); }
+.kitsu-tip { padding: 14px 15px; background: color-mix(in srgb, var(--sun) 9%, var(--bg2)); border: 1px solid color-mix(in srgb, var(--sun) 30%, var(--glass-border)); border-radius: 14px; }
+.kitsu-tip strong { color: color-mix(in srgb, var(--sun) 70%, var(--text)); }
+
+/* Lesson setup and focused study */
+.quiz-setup { text-align: initial; }
+.quiz-setup-title { margin: 5px 0 20px; font-size: 30px; }
+.lesson-setup-hero {
+  padding: 23px 18px 20px;
+  background: var(--bg2);
+  border: 1px solid color-mix(in srgb,var(--unit-color) 42%,var(--glass-border));
+  border-radius: 23px;
+  box-shadow: 0 18px 38px -30px color-mix(in srgb,var(--unit-color) 70%,transparent);
+}
+.lesson-setup-hero::before { left: 28%; right: 28%; height: 4px; border-radius: 0 0 5px 5px; }
+.lesson-setup-close { background: transparent; border: 1px solid var(--glass-border); border-radius: 50%; }
+.lesson-setup-hero h1 { font-size: 29px; }
+.lesson-setup-hero p { font-size: 13px; }
+.lesson-char-preview span { width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--glass-border); border-radius: 10px; }
+.setup-card { box-shadow: var(--shadow); }
+.size-options { gap: 9px; }
+.size-option {
+  min-height: 68px;
+  color: var(--text2);
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.size-option:hover { border-color: color-mix(in srgb, var(--amber) 42%, var(--glass-border)); }
+.size-option.selected { color: var(--amber); background: color-mix(in srgb, var(--amber) 7%, var(--bg2)); border-color: var(--amber); box-shadow: inset 0 -2px color-mix(in srgb, var(--amber) 22%, transparent); }
+.size-option .size-num { color: currentColor; font-size: 21px; }
+.session-count-card { padding: 14px; background: transparent; border: 1px solid var(--glass-border); border-radius: 14px; }
+.session-count-card div { color: var(--amber); font: 700 30px 'Heebo',sans-serif; }
+.study-session-head { margin-bottom: 10px; }
+.lesson-exit { background: transparent; border: 1px solid var(--glass-border); border-radius: 50%; }
+.study-head-center { color: var(--text2); }
+.focus-hearts .full { color: var(--amber); }
+.study-card {
+  min-height: 400px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 23px;
+  background: var(--bg2);
+  box-shadow: 0 28px 58px -42px rgba(17,43,52,.76), 0 1px 0 rgba(255,255,255,.58);
+}
+.study-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .55;
+  background:
+    linear-gradient(to right, transparent 49.82%, color-mix(in srgb, var(--blue) 10%, transparent) 49.9% 50.1%, transparent 50.18%),
+    linear-gradient(to bottom, transparent 49.82%, color-mix(in srgb, var(--blue) 10%, transparent) 49.9% 50.1%, transparent 50.18%);
+}
+.study-card-inner, .rating-btns, .study-card > [style*="padding"] { position: relative; z-index: 1; }
+.study-card-inner { padding: 27px 22px; }
+.kanji-large { font-family: 'Noto Sans JP', sans-serif; font-size: 88px; color: var(--ink); }
+.speaker-btn { width: 42px; height: 42px; color: var(--text2); background: color-mix(in srgb, var(--bg) 78%, transparent); border: 1px solid var(--glass-border); border-radius: 50%; filter: grayscale(.35); }
+.answer-learning-card { gap: 10px; }
+.mnemonic-box { background: color-mix(in srgb, var(--sun) 8%, var(--bg2)); border-color: color-mix(in srgb, var(--sun) 28%, var(--glass-border)); border-radius: 13px; }
+.mnemonic-box .mnemonic-label { color: color-mix(in srgb, var(--sun) 65%, var(--text)); }
+.answer-anecdote { background: color-mix(in srgb, var(--sun) 8%, var(--bg2)); border-color: color-mix(in srgb, var(--sun) 24%, var(--glass-border)); border-radius: 12px; }
+.rating-btns { gap: 8px; padding: 14px 16px 17px; }
+.rating-btn {
+  min-height: 62px;
+  color: var(--text2);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  border-width: 1px !important;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.rating-btn:hover { color: var(--text); transform: translateY(-1px); box-shadow: 0 12px 20px -18px rgba(27,44,52,.7); }
+.mc-option { padding: 14px 15px; background: color-mix(in srgb, var(--bg) 72%, transparent); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: none; }
+.mc-option:hover { border-color: color-mix(in srgb, var(--amber) 48%, var(--glass-border)); }
+.mc-option.correct { background: color-mix(in srgb, var(--green) 12%, var(--bg2)); }
+.mc-option.wrong { background: color-mix(in srgb, var(--red) 12%, var(--bg2)); }
+.mistake-coach { padding: 17px; background: color-mix(in srgb, var(--red) 8%, var(--bg2)); border: 1px solid color-mix(in srgb, var(--red) 35%, var(--glass-border)); border-radius: 17px; box-shadow: none; }
+.lesson-done { padding-top: 30px; }
+.lesson-done h1 { font-size: 31px; }
+.done-confetti { color: var(--amber); }
+
+/* Explorer, guide, stats and settings */
+.explorer-grid { gap: 9px; }
+.explorer-cell {
+  min-width: 0;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.explorer-cell:hover { border-color: color-mix(in srgb, var(--amber) 48%, var(--glass-border)); transform: translateY(-2px); box-shadow: 0 12px 20px -18px rgba(27,44,52,.72); }
+.explorer-cell .cell-reading { color: var(--blue); opacity: 1; }
+.explorer-cell .cell-sub { color: var(--text3); }
+.modal-overlay {
+  padding: 18px;
+  background: rgba(7,18,23,.68);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+.modal {
+  padding: 24px;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -24px 56px -28px rgba(0,0,0,.62);
+}
+.guide-hero {
+  min-height: 182px;
+  padding: 25px 23px;
+  border: 1px solid rgba(49,88,107,.17);
+  border-radius: 23px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--blue) 5%, var(--bg2)), var(--bg2));
+  box-shadow: 0 22px 46px -38px rgba(20,53,65,.8);
+}
+.guide-watermark { color: color-mix(in srgb, var(--blue) 8%, transparent); }
+.guide-hero h1 { font-size: 28px; }
+.guide-hero p { font-size: 13px; }
+.guide-switch { gap: 5px; padding: 5px; background: var(--bg2); border: 1px solid var(--glass-border); border-radius: 13px; box-shadow: none; }
+.guide-switch button { border-radius: 9px; }
+.guide-switch button.active { color: #fff; background: var(--brand); box-shadow: none; }
+.method-step, .strategy-card, .guide-kanji-card, .source-link {
+  background: color-mix(in srgb, var(--bg2) 94%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: none;
+}
+.method-step { padding: 16px; }
+.method-step-num { color: var(--amber); background: color-mix(in srgb, var(--amber) 8%, var(--bg2)); border-color: color-mix(in srgb, var(--amber) 30%, var(--glass-border)); }
+.method-step p, .tip-card .tip-text { font-size: 13px; }
+.memory-step { background: color-mix(in srgb, var(--bg) 72%, transparent); border: 1px solid var(--glass-border); border-radius: 12px; }
+.memory-step-icon, .chip-glyph {
+  color: var(--amber);
+  font-family: 'Shippori Mincho','Noto Sans JP',serif;
+  font-weight: 700;
+}
+.chip-glyph { margin-inline-end: 3px; font-size: 13px; }
+.memory-step-label { color: var(--amber); }
+.memory-step-text { color: var(--text2); }
+.kitsu-story-bubble { background: color-mix(in srgb, var(--sun) 8%, var(--bg2)); border-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border)); }
+.kitsu-story-bubble::before { border-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border)); }
+.guide-kanji-card { min-height: 110px; }
+.guide-story-badge { color: var(--purple); background: color-mix(in srgb, var(--purple) 10%, transparent); }
+.source-link:hover { color: var(--text); border-color: color-mix(in srgb, var(--blue) 35%, var(--glass-border)); }
+.stat-row { min-height: 44px; border-bottom: 1px solid var(--glass-border); }
+.stat-row:last-child { border-bottom: 0; }
+.stat-label { color: var(--text2); }
+.stat-value { font-variant-numeric: tabular-nums; }
+.kitsu-tip > span { color: var(--sun); font-family: 'Shippori Mincho','Noto Sans JP',serif; font-weight: 700; }
+
+@media (min-width: 640px) {
+  body { padding-top: 26px; }
+  #root { min-height: calc(100dvh - 26px); border-radius: 28px 28px 0 0; overflow: clip; }
+  .modal-overlay { align-items: center; }
+  .modal { max-height: calc(100vh - 72px); border-radius: 22px; box-shadow: 0 28px 80px -34px rgba(0,0,0,.72); }
+}
+
+@media (max-width: 410px) {
+  .page { padding: 18px 15px 24px; }
+  .top-bar { padding-inline: 9px; gap: 5px; }
+  .brand-lockup strong { font-size: 13px; }
+  .status-pill { padding: 4px 7px; }
+  .icon-button { width: 33px; height: 33px; }
+  .home-hero { padding: 20px 18px; }
+  .home-hero::after { inset-inline-start: 16px; top: 16px; }
+  .hero-coach-row { grid-template-columns: 64px 1fr; gap: 12px; }
+  .hero-coach-row .kitsu-avatar, .hero-coach-row svg { width: 64px !important; height: 64px !important; }
+  .coach-speech h1 { font-size: 25px; }
+  .path-unit { grid-template-columns: 1fr 76px 1fr; }
+  .path-unit .path-node { width: 62px; height: 62px; border-radius: 18px; }
+  .path-unit:nth-child(odd) .path-node { transform: translateX(-13px) rotate(-3deg); }
+  .path-unit:nth-child(even) .path-node { transform: translateX(13px) rotate(3deg); }
+  .path-copy { padding: 9px 8px; }
+  .path-copy strong { font-size: 11px; }
+  .component-piece { min-width: 57px; }
+}
+
+@media (max-width: 360px) {
+  .brand-lockup > span:last-child { display: none; }
+  .top-status { gap: 3px; }
+  .status-pill { min-height: 29px; padding: 3px 6px; }
+  .top-actions { gap: 3px; }
+  .icon-button { width: 31px; height: 31px; }
+  .page { padding-inline: 13px; }
+  .home-hero { padding-inline: 16px; }
+  .coach-speech h1 { font-size: 23px; }
+  .daily-review { grid-template-columns: 38px 1fr; }
+  .daily-review .review-action { grid-column: 1 / -1; width: 100%; }
+  .path-unit { grid-template-columns: 1fr 68px 1fr; }
+  .path-unit .path-node { width: 56px; height: 56px; }
+  .node-kanji { font-size: 26px; }
+  .explorer-grid { gap: 6px; }
+  .guide-grid { gap: 7px; }
+}
+
+/* Final contrast, touch and legacy-override guarantees */
+button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+.search-box:focus-visible, .typing-input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.icon-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+.brand-lockup, .btn-sm, .tab, .guide-switch button, .review-action, .lesson-setup-close,
+.lesson-exit, .speaker-btn, .section-heading button { min-height: 44px; }
+.lesson-setup-close, .lesson-exit, .speaker-btn { min-width: 44px; width: 44px; height: 44px; }
+.kanji-equation.compact .component-meaning { font-size: 10px; }
+.stage-badge {
+  color: color-mix(in srgb, var(--stage-color) 58%, var(--text));
+  background: color-mix(in srgb, var(--stage-color) 12%, var(--bg2));
+  border: 1px solid color-mix(in srgb, var(--stage-color) 32%, var(--glass-border));
+}
+.stage-label { color: color-mix(in srgb, var(--stage-color) 58%, var(--text)); }
+[data-theme="dark"] .home-hero {
+  box-shadow: 0 24px 54px -38px rgba(0,0,0,.92), 0 1px 0 rgba(255,255,255,.04);
+}
+[data-theme="dark"] .mnemonic-box,
+[data-theme="dark"] .kitsu-story-bubble {
+  background: color-mix(in srgb, var(--sun) 8%, var(--bg2));
+  border-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
+}
+[data-theme="dark"] .kitsu-story-bubble::before {
+  border-left-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
+  border-bottom-color: color-mix(in srgb, var(--sun) 27%, var(--glass-border));
+}
+[data-theme="dark"] .mistake-coach {
+  background: color-mix(in srgb, var(--red) 8%, var(--bg2));
+  border-color: color-mix(in srgb, var(--red) 35%, var(--glass-border));
+  box-shadow: none;
+}
+[data-theme="dark"] .nav-btn.active .nav-icon,
+[data-theme="dark"] .path-unit.completed .path-node { color: var(--bg); }
+[data-theme="dark"] ::selection { color: var(--bg); background: var(--amber); }
+#root { padding-top: 0; }
+.modal {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior: contain;
+  border-radius: 24px;
+}
+.modal-overlay { overscroll-behavior: contain; }
+.modal-close {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  margin-inline-start: auto;
+  margin-bottom: -44px;
+  color: var(--text2);
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  box-shadow: 0 8px 20px -16px rgba(15,30,39,.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 24px;
+}
+.explorer-cell .cell-reading, .explorer-cell .cell-sub { font-size: 9px; }
+.path-copy small, .path-copy > span:not(.unit-meter), .path-copy em { font-size: 10px; }
+.nav-bar { transition: transform .22s ease, background .22s ease; }
+.status-pill { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@supports selector(body:has(input:focus)) {
+  body:has(input:focus) .nav-bar {
+    transform: translate(-50%, calc(100% + 28px));
+    pointer-events: none;
+  }
+}
+@media (max-width: 410px) {
+  .top-bar { padding-inline: 6px; gap: 3px; }
+  .top-status, .top-actions { gap: 2px; }
+  .status-pill { padding-inline: 5px; }
+  .brand-lockup small { display: block; }
+  .top-bar.session-mode .brand-lockup > span:last-child { display: none; }
+  .path-copy > span:not(.unit-meter) { display: block; }
+  .path-copy strong { font-size: 12px; }
+  .path-copy > span:not(.unit-meter) { font-size: 10px; }
+  .path-copy em { font-size: 9px; }
+}
+@media (max-width: 560px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; }
+}
+@media (max-width: 480px) {
+  .top-bar.session-mode .brand-lockup > span:last-child,
+  .top-bar.session-mode .streak-pill { display: none; }
+}
+@media (max-width: 360px) {
+  .brand-lockup > span:last-child { display: none; }
+  .top-bar.session-mode .streak-pill { display: none; }
+  .path-copy > span:not(.unit-meter) { display: none; }
+  .explorer-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  body { padding-top: 0; }
+  #root { min-height: 100dvh; border-radius: 0; }
+  .top-bar { min-height: 56px; padding-top: 6px; padding-bottom: 6px; }
+  .page { padding: 8px 16px 16px; }
+  .study-session-head { margin-bottom: 4px; }
+  .study-card { min-height: 240px; border-radius: 18px; }
+  .study-card-inner { padding: 10px 18px; gap: 6px; }
+  .study-card-inner > .btn-primary { margin-top: 6px !important; }
+  .kanji-large { font-size: 56px; }
+  .rating-btns { padding: 8px 12px 12px; }
+  .rating-btn { min-height: 54px; }
+  .lesson-done { padding-top: 12px; }
+  .modal { max-height: calc(100dvh - 20px); }
+}
 </style>
 </head>
 <body>
@@ -832,12 +1643,12 @@ const KANJI = KANJI_DB.filter(k => {
 
 // ======================== SRS SYSTEM ========================
 const SRS_STAGES = [
-  {name:'חדש', nameEn:'New', color:'#888', min:0, max:0},
-  {name:'חניך', nameEn:'Apprentice', color:'#dd42a5', min:1, max:4},
-  {name:'גורו', nameEn:'Guru', color:'#ab47bc', min:5, max:6},
-  {name:'מאסטר', nameEn:'Master', color:'#42a5f5', min:7, max:7},
-  {name:'מואר', nameEn:'Enlightened', color:'#42f5a7', min:8, max:8},
-  {name:'נצרב', nameEn:'Burned', color:'#f0a830', min:9, max:100},
+  {name:'חדש', nameEn:'New', color:'#7b8588', min:0, max:0},
+  {name:'חניך', nameEn:'Apprentice', color:'#9b5b78', min:1, max:4},
+  {name:'גורו', nameEn:'Guru', color:'#6b648e', min:5, max:6},
+  {name:'מאסטר', nameEn:'Master', color:'#31586b', min:7, max:7},
+  {name:'מואר', nameEn:'Enlightened', color:'#527a69', min:8, max:8},
+  {name:'נצרב', nameEn:'Burned', color:'#a87543', min:9, max:100},
 ];
 
 const ACHIEVEMENTS = [
@@ -1122,13 +1933,13 @@ const KANJI_LEARNING = {
 };
 
 const COURSE_UNITS = [
-  {id:'pictures', label:'יחידה 1', title:'תמונות ראשונות', subtitle:'שמש, ירח, אור ועצים', icon:'日', color:'#ffc857', chars:['日','月','明','木','林','森'], coach:'נתחיל מצורות שהעין יכולה להפוך מיד לתמונה.'},
-  {id:'school', label:'יחידה 2', title:'בדרך לבית הספר', subtitle:'לומדים, כותבים וקוראים', icon:'学', color:'#4d9ef7', chars:['学','字','校','本','生'], coach:'ילד, גג ועץ חוזרים שוב ושוב — בואו נשתמש בהם.'},
-  {id:'language', label:'יחידה 3', title:'עיניים, אוזניים ומילים', subtitle:'חמש פעולות שפה', icon:'聞', color:'#8b7cf6', chars:['見','聞','話','読','書'], coach:'נחבר כל פעולה לאיבר ולסצנה שאי אפשר לפספס.'},
-  {id:'daily', label:'יחידה 4', title:'יום בתנועה', subtitle:'אוכל, שתייה והליכה', icon:'休', color:'#ff7b66', chars:['食','飲','行','来','休'], coach:'נבנה יום קטן: אוכלים, שותים, הולכים, באים ונחים.'},
-  {id:'time', label:'יחידה 5', title:'הזמן זז', subtitle:'שעה, מרווח וימי השבוע', icon:'時', color:'#2dbe7c', chars:['時','間','曜','年','毎'], coach:'כאן החלקים צפופים יותר, אז נפרק אותם בשתי שכבות.'},
-  {id:'directions', label:'יחידה 6', title:'על המפה', subtitle:'מזרח, מערב, לפני ואחרי', icon:'東', color:'#f5a947', chars:['東','西','前','後','外'], coach:'השמש והשביל יעזרו לנו לשמור על כיוון.'},
-  {id:'world', label:'יחידה 7', title:'העולם החדש', subtitle:'מדינה, חשמל ואוויר', icon:'電', color:'#35b8c8', chars:['国','電','気','新','安'], coach:'נסיים בקאנג׳ים מורכבים שתראו כמעט בכל יום ביפן.'},
+  {id:'pictures', label:'יחידה 1', title:'תמונות ראשונות', subtitle:'שמש, ירח, אור ועצים', icon:'日', color:'#a87543', chars:['日','月','明','木','林','森'], coach:'נתחיל מצורות שהעין יכולה להפוך מיד לתמונה.'},
+  {id:'school', label:'יחידה 2', title:'בדרך לבית הספר', subtitle:'לומדים, כותבים וקוראים', icon:'学', color:'#31586b', chars:['学','字','校','本','生'], coach:'ילד, גג ועץ חוזרים שוב ושוב — בואו נשתמש בהם.'},
+  {id:'language', label:'יחידה 3', title:'עיניים, אוזניים ומילים', subtitle:'חמש פעולות שפה', icon:'聞', color:'#6b648e', chars:['見','聞','話','読','書'], coach:'נחבר כל פעולה לאיבר ולסצנה שאי אפשר לפספס.'},
+  {id:'daily', label:'יחידה 4', title:'יום בתנועה', subtitle:'אוכל, שתייה והליכה', icon:'休', color:'#a85447', chars:['食','飲','行','来','休'], coach:'נבנה יום קטן: אוכלים, שותים, הולכים, באים ונחים.'},
+  {id:'time', label:'יחידה 5', title:'הזמן זז', subtitle:'שעה, מרווח וימי השבוע', icon:'時', color:'#527a69', chars:['時','間','曜','年','毎'], coach:'כאן החלקים צפופים יותר, אז נפרק אותם בשתי שכבות.'},
+  {id:'directions', label:'יחידה 6', title:'על המפה', subtitle:'מזרח, מערב, לפני ואחרי', icon:'東', color:'#9a6c45', chars:['東','西','前','後','外'], coach:'השמש והשביל יעזרו לנו לשמור על כיוון.'},
+  {id:'world', label:'יחידה 7', title:'העולם החדש', subtitle:'מדינה, חשמל ואוויר', icon:'電', color:'#3e7180', chars:['国','電','気','新','安'], coach:'נסיים בקאנג׳ים מורכבים שתראו כמעט בכל יום ביפן.'},
 ];
 
 function getLearningProfile(kanji) {
@@ -1166,17 +1977,17 @@ function KitsuMascot({size=58, mood='happy'}) {
   return (
     <span className="kitsu-avatar" style={{width:size, height:size}} aria-hidden="true">
       <svg viewBox="0 0 80 80" width={size} height={size} role="img">
-        <circle cx="40" cy="40" r="38" fill="#dff7ea" />
-        <path d="M18 30 L12 9 L31 21 Q40 16 49 21 L68 9 L62 31 Q69 39 66 51 Q62 68 40 70 Q18 68 14 51 Q11 39 18 30Z" fill="#f28a45" />
-        <path d="M17 15 L28 24 L19 29Z" fill="#7d4050" />
-        <path d="M63 15 L52 24 L61 29Z" fill="#7d4050" />
-        <path d="M18 48 Q27 43 40 53 Q53 43 62 48 Q58 66 40 69 Q22 66 18 48Z" fill="#fff7e9" />
+        <circle cx="40" cy="40" r="38" fill="#ebe7dd" />
+        <path d="M18 30 L12 9 L31 21 Q40 16 49 21 L68 9 L62 31 Q69 39 66 51 Q62 68 40 70 Q18 68 14 51 Q11 39 18 30Z" fill="#b75a43" />
+        <path d="M17 15 L28 24 L19 29Z" fill="#593b3e" />
+        <path d="M63 15 L52 24 L61 29Z" fill="#593b3e" />
+        <path d="M18 48 Q27 43 40 53 Q53 43 62 48 Q58 66 40 69 Q22 66 18 48Z" fill="#fcf8f1" />
         <path d={mood === 'oops' ? `M25 ${eyeY} Q29 ${eyeY-4} 33 ${eyeY}` : `M26 ${eyeY} Q29 ${eyeY+3} 32 ${eyeY}`} fill="none" stroke="#25324a" strokeWidth="3" strokeLinecap="round" />
         <path d={mood === 'oops' ? `M47 ${eyeY} Q51 ${eyeY-4} 55 ${eyeY}` : `M48 ${eyeY} Q51 ${eyeY+3} 54 ${eyeY}`} fill="none" stroke="#25324a" strokeWidth="3" strokeLinecap="round" />
         <path d="M36 51 Q40 48 44 51 Q42 55 40 55 Q38 55 36 51Z" fill="#25324a" />
         <path d={mood === 'oops' ? 'M36 60 Q40 57 44 60' : 'M34 58 Q40 64 46 58'} fill="none" stroke="#25324a" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="20" cy="45" r="3" fill="#ffb39d" opacity=".8" />
-        <circle cx="60" cy="45" r="3" fill="#ffb39d" opacity=".8" />
+        <circle cx="20" cy="45" r="3" fill="#d99b87" opacity=".72" />
+        <circle cx="60" cy="45" r="3" fill="#d99b87" opacity=".72" />
       </svg>
     </span>
   );
@@ -1217,7 +2028,7 @@ function KanjiMemorySteps({kanji}) {
         </div>
       ) : (
         <div className="memory-step">
-          <span className="memory-step-icon" aria-hidden="true">🧩</span>
+          <span className="memory-step-icon" aria-hidden="true">形</span>
           <div>
             <div className="memory-step-label">איך הוא בנוי?</div>
             <div className="memory-step-text" dir="auto">{getComponentHint(kanji)}</div>
@@ -1233,24 +2044,24 @@ function KanjiMemorySteps({kanji}) {
       </div>
       {profile && profile.role && (
         <div className="memory-step role-step">
-          <span className="memory-step-icon" aria-hidden="true">🔎</span>
+          <span className="memory-step-icon" aria-hidden="true">理</span>
           <div><div className="memory-step-label">תפקיד אמיתי של הרכיבים</div><div className="memory-step-text">{profile.role}</div></div>
         </div>
       )}
       {profile && profile.note && (
         <div className="memory-step anecdote-step">
-          <span className="memory-step-icon" aria-hidden="true">✨</span>
+          <span className="memory-step-icon" aria-hidden="true">記</span>
           <div><div className="memory-step-label">עובדה קטנה</div><div className="memory-step-text">{profile.note}</div></div>
         </div>
       )}
       {vocab && (
         <div className="memory-step">
-          <span className="memory-step-icon" aria-hidden="true">🔊</span>
+          <span className="memory-step-icon" aria-hidden="true">音</span>
           <div>
             <div className="memory-step-label">עוגן במילה אמיתית</div>
             <div className="memory-step-text">
               <button onClick={() => speakJP(vocab.w)} style={{color:'var(--text)', textAlign:'right'}} title="השמע מילה">
-                <span className="jp" dir="ltr">{vocab.w}（{vocab.r}）</span> — {vocab.he} 🔊
+                <span className="jp" dir="ltr">{vocab.w}（{vocab.r}）</span> — {vocab.he} <span aria-hidden="true">♪</span>
               </button>
             </div>
           </div>
@@ -1263,7 +2074,7 @@ function KanjiMemorySteps({kanji}) {
         </div>
       )}
       <div className="memory-step">
-        <span className="memory-step-icon" aria-hidden="true">🧠</span>
+        <span className="memory-step-icon" aria-hidden="true">覚</span>
         <div>
           <div className="memory-step-label">שליפה</div>
           <div className="memory-step-text">כסו את התשובה, אמרו את המשמעות ואת המילה בקול, ורק אז בדקו.</div>
@@ -1428,12 +2239,18 @@ function App() {
   const [lastAction, setLastAction] = useState(null);
   const [lessonFocus, setLessonFocus] = useState(null);
 
-  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); saveData('theme', theme); }, [theme]);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#0f1e27' : '#f3f5f2');
+    saveData('theme', theme);
+  }, [theme]);
   useEffect(() => { saveData('sound', soundOn); }, [soundOn]);
   useEffect(() => { saveData('levels', selectedLevels); }, [selectedLevels]);
   useEffect(() => { saveData('quizMode', quizMode); }, [quizMode]);
   useEffect(() => { saveData('srs', srsData); }, [srsData]);
   useEffect(() => { saveData('stats', stats); }, [stats]);
+  useEffect(() => { window.scrollTo(0, 0); }, [tab]);
 
   // Session timer
   useEffect(() => {
@@ -1501,7 +2318,7 @@ function App() {
 function TopBar({theme, setTheme, soundOn, setSoundOn, sessionTime, sessionActive, stats, setTab}) {
   const fmt = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   return (
-    <header className="top-bar">
+    <header className={`top-bar ${sessionActive ? 'session-mode' : ''}`}>
       <button className="brand-lockup" onClick={() => setTab('home')} disabled={sessionActive} aria-label="חזרה למסלול הראשי">
         <KitsuMascot size={38} />
         <span>
@@ -1510,18 +2327,18 @@ function TopBar({theme, setTheme, soundOn, setSoundOn, sessionTime, sessionActiv
         </span>
       </button>
       <div className="top-status" aria-label="מצב למידה">
-        <span className="status-pill streak-pill" title="רצף ימים">🔥 {stats.streak}</span>
-        <span className="status-pill xp-pill" title="נקודות ניסיון">◆ {stats.totalXP}</span>
+        <span className="status-pill streak-pill" title="רצף ימים"><span className="status-mark jp" aria-hidden="true">連</span>{stats.streak}</span>
+        <span className="status-pill xp-pill" title="נקודות ניסיון"><span className="status-mark" aria-hidden="true">XP</span>{stats.totalXP}</span>
         {sessionActive && <span className="status-pill timer-pill" dir="ltr">{fmt(sessionTime)}</span>}
       </div>
       <div className="top-actions">
         <button className="icon-button" onClick={() => setSoundOn(!soundOn)} title={soundOn ? 'כיבוי צליל' : 'הפעלת צליל'} aria-label={soundOn ? 'כיבוי צליל' : 'הפעלת צליל'}>
-          {soundOn ? '🔊' : '🔇'}
+          {soundOn ? '♪' : '♪̸'}
         </button>
         <button className="icon-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="החלפת ערכת צבעים" aria-label="החלפת ערכת צבעים">
-          {theme === 'dark' ? '☀️' : '🌙'}
+          {theme === 'dark' ? '☼' : '◐'}
         </button>
-        <button className="icon-button settings-button" onClick={() => setTab('add')} disabled={sessionActive} title="הגדרות" aria-label="הגדרות">⚙</button>
+        <button className="icon-button settings-button" onClick={() => setTab('add')} disabled={sessionActive} title="הגדרות" aria-label="הגדרות">⋯</button>
       </div>
     </header>
   );
@@ -1652,7 +2469,7 @@ function HomePage({stats, filteredKanji, srsData, selectedLevels, toggleLevel, s
       </details>
 
       <aside className="kitsu-tip">
-        <span aria-hidden="true">💡</span>
+        <span aria-hidden="true">知</span>
         <div><strong>טיפ קטן מקיצו</strong><p>{DAILY_QUICK_TIPS[Math.floor(Date.now() / 86400000) % DAILY_QUICK_TIPS.length]}</p></div>
       </aside>
     </main>
@@ -1728,6 +2545,8 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
 
   useEffect(() => { doSoundRef.current = doSound; }, [doSound]);
 
+  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+
   useEffect(() => () => {
     [advanceTimerRef, finishTimerRef, xpTimerRef].forEach(ref => {
       if (ref.current) clearTimeout(ref.current);
@@ -1789,10 +2608,10 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
       {n: 0, l: 'הכל'},
     ];
     const filters = [
-      {k:'due', l:'ממתינים', count: allDue.length, icon:'⏰'},
-      {k:'new', l:'חדשים', count: newKanji.length, icon:'🆕'},
-      {k:'weak', l:'חלשים', count: weakKanji.length, icon:'💪'},
-      {k:'all', l:'הכל', count: kanji.length, icon:'📚'},
+      {k:'due', l:'ממתינים', count: allDue.length, icon:'時'},
+      {k:'new', l:'חדשים', count: newKanji.length, icon:'新'},
+      {k:'weak', l:'לחיזוק', count: weakKanji.length, icon:'補'},
+      {k:'all', l:'הכל', count: kanji.length, icon:'全'},
     ];
     const effectiveCount = lessonPool ? lessonPool.length : studyFilter === 'new' ? newKanji.length :
                            studyFilter === 'weak' ? weakKanji.length :
@@ -1822,7 +2641,7 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
               {filters.map(f => (
                 <button key={f.k} className={`chip ${studyFilter === f.k ? 'selected' : ''}`}
                         onClick={() => setStudyFilter(f.k)}>
-                  {f.icon} {f.l} ({f.count})
+                  <span className="chip-glyph jp" aria-hidden="true">{f.icon}</span>{f.l} ({f.count})
                 </button>
               ))}
             </div>
@@ -1847,9 +2666,11 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
         <div className="card setup-card" style={{textAlign:'right'}}>
           <div style={{fontWeight:700, marginBottom:10}}>{lessonFocus ? 'איך נתרגל את היחידה?' : 'מצב תרגול'}</div>
           <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
-            {[{k:'flashcard',l:'🃏 כרטיסיות'},{k:'mc',l:'📝 רב-ברירה'},{k:'typing',l:'⌨️ הקלדה'}].map(m => (
+            {[{k:'flashcard',l:'כרטיסיות',icon:'札'},{k:'mc',l:'רב-ברירה',icon:'択'},{k:'typing',l:'הקלדה',icon:'A'}].map(m => (
               <button key={m.k} className={`chip ${quizMode === m.k ? 'selected' : ''}`}
-                      onClick={() => { setQuizMode(m.k); saveData('quizMode', m.k); }}>{m.l}</button>
+                      onClick={() => { setQuizMode(m.k); saveData('quizMode', m.k); }}>
+                <span className="chip-glyph jp" aria-hidden="true">{m.icon}</span>{m.l}
+              </button>
             ))}
           </div>
         </div>
@@ -2128,7 +2949,7 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
   if (phase === 'active' && (!current || currentIndex >= sessionDeck.length)) {
     return (
       <div className="page" style={{textAlign:'center', paddingTop:60}}>
-        <div style={{fontSize:64, marginBottom:20}}>✅</div>
+        <div className="jp" style={{fontSize:58, marginBottom:20, color:'var(--green)'}}>完</div>
         <div style={{fontSize:22, fontWeight:700, marginBottom:8}}>אין קאנג'י זמינים!</div>
         <div style={{color:'var(--text2)', marginBottom:20}}>שנה את הסינון או חזור מאוחר יותר.</div>
         <button className="btn btn-primary" onClick={() => setPhase('setup')}>חזור להגדרות</button>
@@ -2177,10 +2998,10 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
         {combo > 2 && <div className="combo-badge" style={{animation:'streak 0.5s ease'}}>x{combo} קומבו</div>}
         {xpFloat && <div className="xp-float">+{xpFloat} XP</div>}
         <div className="study-card-inner">
-          <div className="badge" style={{background:stage.color+'33', color:stage.color}}>{stage.name}</div>
+          <div className="badge stage-badge" style={{'--stage-color':stage.color}}>{stage.name}</div>
           <div className="jp kanji-large" onClick={() => speakJP(current.c)}
                style={{cursor:'pointer'}} title="לחץ להשמעה">{current.c}</div>
-          <button className="speaker-btn" onClick={() => speakJP(current.c)} title="השמע">🔊</button>
+          <button className="speaker-btn" onClick={() => speakJP(current.c)} title="השמע" aria-label={`השמעת ${current.c}`}>♪</button>
           <div style={{fontSize:12, color:'var(--text3)'}}>משיכות: {current.s} | {formatLevel(current.j)}</div>
 
           {quizMode === 'flashcard' && !flipped && (
@@ -2203,7 +3024,7 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
               {current.v && current.v[0] && (
                 <div style={{background:'var(--bg3)', borderRadius:8, padding:10, marginTop:8, cursor:'pointer'}}
                      onClick={() => speakJP(current.v[0].w)}>
-                  <div className="jp ltr" style={{fontSize:18}}>{current.v[0].w} 🔊</div>
+                  <div className="jp ltr" style={{fontSize:18}}>{current.v[0].w} <span aria-hidden="true">♪</span></div>
                   <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{current.v[0].r}</div>
                   <div style={{fontSize:13}}>{current.v[0].he}</div>
                 </div>
@@ -2214,7 +3035,7 @@ function StudyPage({kanji, srsData, setSrsData, stats, setStats, quizMode, setQu
                   <div className="mnemonic-label">הסיפור של קיצו</div>
                   <div className="mnemonic-text" dir="auto">{getMemoryStory(current)}</div>
                 </div>
-                {getLearningProfile(current) && <div className="answer-anecdote">✨ {getLearningProfile(current).note}</div>}
+                {getLearningProfile(current) && <div className="answer-anecdote"><span className="jp" aria-hidden="true">記</span> {getLearningProfile(current).note}</div>}
               </div>
             </div>
           )}
@@ -2290,6 +3111,51 @@ function ExplorePage({selectedLevels, srsData}) {
   const [activeTab, setActiveTab] = useState('N5');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const dialogRef = useRef(null);
+  const dialogTriggerRef = useRef(null);
+
+  useEffect(() => {
+    if (!selected) return;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const dialog = dialogRef.current;
+    const focusFrame = requestAnimationFrame(() => dialog && dialog.focus({preventScroll:true}));
+    const handleDialogKey = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelected(null);
+        return;
+      }
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(element => element.offsetParent !== null);
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', handleDialogKey);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      window.removeEventListener('keydown', handleDialogKey);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      if (dialogTriggerRef.current) dialogTriggerRef.current.focus({preventScroll:true});
+    };
+  }, [selected?.c]);
 
   const filtered = useMemo(() => {
     let list = KANJI.filter(k => k.j === activeTab);
@@ -2314,7 +3180,8 @@ function ExplorePage({selectedLevels, srsData}) {
           </button>
         ))}
       </div>
-      <input className="search-box" placeholder="חיפוש קאנג'י, משמעות, קריאה..."
+      <label className="sr-only" htmlFor="explorer-search">חיפוש בסייר הקאנג׳י</label>
+      <input id="explorer-search" className="search-box" placeholder="חיפוש קאנג'י, משמעות, קריאה..."
              value={search} onChange={e => setSearch(e.target.value)} />
       <div className="explorer-grid">
         {filtered.map(k => {
@@ -2322,13 +3189,17 @@ function ExplorePage({selectedLevels, srsData}) {
           const stage = getStage(d ? d.level : 0);
           const mainReading = k.kun.length > 0 ? k.kun[0].replace('.','') : (k.on.length > 0 ? k.on[0] : '');
           return (
-            <div key={k.c} className="explorer-cell" onClick={() => setSelected(k)}
-                 style={{borderColor: stage.color + '66'}}>
+            <button type="button" key={k.c} className="explorer-cell" onClick={(event) => {
+                      dialogTriggerRef.current = event.currentTarget;
+                      setSelected(k);
+                    }}
+                    aria-label={`${k.c}, ${k.he}, ${stage.name}`}
+                    style={{borderColor: stage.color + '66'}}>
               {d && d.level > 0 && <div className="cell-stage-dot" style={{background: stage.color}} />}
               <span className="cell-reading">{mainReading}</span>
               <span className="jp" style={{lineHeight:1}}>{k.c}</span>
               <span className="cell-sub">{k.he}</span>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -2336,13 +3207,14 @@ function ExplorePage({selectedLevels, srsData}) {
 
       {selected && (
         <div className="modal-overlay" onClick={() => setSelected(null)}>
-          <div className="modal scale-in" onClick={e => e.stopPropagation()}>
+          <div ref={dialogRef} className="modal scale-in" role="dialog" aria-modal="true" tabIndex="-1"
+               aria-label={`פרטי הקאנג׳י ${selected.c}`} onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelected(null)} aria-label="סגירת חלון הקאנג׳י">×</button>
             <div style={{textAlign:'center'}}>
               <div className="jp" style={{fontSize:72, fontWeight:900, cursor:'pointer'}}
                    onClick={() => speakJP(selected.c)} title="לחץ להשמעה">{selected.c}</div>
-              <button className="speaker-btn" onClick={() => speakJP(selected.c)} title="השמע">🔊</button>
-              <div className="badge" style={{background:getStage((srsData[selected.c]||{level:0}).level).color+'33',
-                   color:getStage((srsData[selected.c]||{level:0}).level).color, marginBottom:12}}>
+              <button className="speaker-btn" onClick={() => speakJP(selected.c)} title="השמע" aria-label={`השמעת ${selected.c}`}>♪</button>
+              <div className="badge stage-badge" style={{'--stage-color':getStage((srsData[selected.c]||{level:0}).level).color, marginBottom:12}}>
                 {getStage((srsData[selected.c]||{level:0}).level).name}
               </div>
               <div style={{fontSize:20, fontWeight:600, marginBottom:4}}>{selected.he}</div>
@@ -2367,7 +3239,7 @@ function ExplorePage({selectedLevels, srsData}) {
               {selected.v && selected.v[0] && (
                 <div style={{background:'var(--bg3)', borderRadius:8, padding:12, marginTop:12, cursor:'pointer'}}
                      onClick={() => speakJP(selected.v[0].w)}>
-                  <div style={{fontSize:12, color:'var(--text3)', marginBottom:4}}>מילה לדוגמה 🔊</div>
+                  <div style={{fontSize:12, color:'var(--text3)', marginBottom:4}}>מילה לדוגמה <span aria-hidden="true">♪</span></div>
                   <div className="jp ltr" style={{fontSize:20}}>{selected.v[0].w}</div>
                   <div className="jp ltr" style={{fontSize:14, color:'var(--amber)'}}>{selected.v[0].r}</div>
                   <div style={{fontSize:14}}>{selected.v[0].he} ({selected.v[0].en})</div>
@@ -2424,7 +3296,8 @@ function AddPage({selectedLevels, toggleLevel, stats, setStats, quizMode, setQui
       <div className="card">
         <div style={{fontWeight:600, marginBottom:10}}>יעד יומי</div>
         <div style={{display:'flex', gap:8, alignItems:'center'}}>
-          <input type="number" value={goal} onChange={e => setGoal(e.target.value)}
+          <label className="sr-only" htmlFor="daily-goal">מספר חזרות ביום</label>
+          <input id="daily-goal" type="number" value={goal} onChange={e => setGoal(e.target.value)}
                  style={{width:80, padding:'8px 12px', borderRadius:8, border:'1px solid var(--bg3)',
                          background:'var(--bg)', color:'var(--text)', fontSize:16, textAlign:'center'}} />
           <span style={{fontSize:14, color:'var(--text2)'}}>חזרות ביום</span>
@@ -2517,7 +3390,7 @@ function StatsPage({stats, srsData}) {
         {SRS_STAGES.map(s => (
           <div key={s.nameEn} style={{marginBottom:8}}>
             <div style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4}}>
-              <span style={{color:s.color}}>{s.name}</span>
+              <span className="stage-label" style={{'--stage-color':s.color}}>{s.name}</span>
               <span style={{fontWeight:600}}>{stageDistribution[s.nameEn]}</span>
             </div>
             <div className="progress-bar">
@@ -2599,9 +3472,17 @@ function TipsPage({srsData}) {
 
   useEffect(() => {
     if (!selected) return;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     const closeOnEscape = (event) => { if (event.key === 'Escape') setSelected(null); };
     window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
   }, [selected]);
 
   const levelKanji = useMemo(() => KANJI.filter(k => k.j === activeLevel), [activeLevel]);
@@ -2741,6 +3622,7 @@ function TipsPage({srsData}) {
           {selected && (
             <div className="modal-overlay" onClick={() => setSelected(null)}>
               <div className="modal scale-in" role="dialog" aria-modal="true" aria-label={`מדריך לקאנג׳י ${selected.c}`} onClick={e => e.stopPropagation()}>
+                <button className="modal-close" onClick={() => setSelected(null)} aria-label="סגירת מדריך הקאנג׳י">×</button>
                 <div style={{textAlign:'center', marginBottom:14}}>
                   <div className="jp" style={{fontSize:72, fontWeight:900}}>{selected.c}</div>
                   <div style={{fontSize:19, fontWeight:700}}>{selected.he}</div>
@@ -2760,22 +3642,23 @@ function TipsPage({srsData}) {
 // ======================== NAV BAR ========================
 function NavBar({tab, setTab}) {
   const items = [
-    {id:'home', icon:'⌁', label:'מסלול'},
-    {id:'study', icon:'◆', label:'תרגול'},
-    {id:'explore', icon:'漢', label:'קאנג\'י'},
-    {id:'tips', icon:'✦', label:'מדריך'},
-    {id:'stats', icon:'▥', label:'נתונים'},
+    {id:'home', icon:'道', label:'מסלול'},
+    {id:'study', icon:'習', label:'תרגול'},
+    {id:'explore', icon:'字', label:'קאנג\'י'},
+    {id:'tips', icon:'覚', label:'מדריך'},
+    {id:'stats', icon:'計', label:'נתונים'},
   ];
   return (
-    <div className="nav-bar">
+    <nav className="nav-bar" aria-label="ניווט ראשי">
       {items.map(it => (
         <button key={it.id} className={`nav-btn ${tab === it.id ? 'active' : ''}`}
+                aria-current={tab === it.id ? 'page' : undefined}
                 onClick={() => setTab(it.id)}>
-          <span className="nav-icon">{it.icon}</span>
+          <span className="nav-icon jp">{it.icon}</span>
           <span>{it.label}</span>
         </button>
       ))}
-    </div>
+    </nav>
   );
 }
 
